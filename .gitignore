@@ -1,0 +1,49 @@
+# ========================================
+# .gitignore para proyectos .NET 8 / Visual Studio
+# ========================================
+
+# Archivos de compilación
+bin/
+obj/
+out/
+Debug/
+Release/
+
+# Configuración de usuario / IDE
+.vs/
+*.user
+*.suo
+
+# Publicaciones
+publish/
+*.pubxml
+*.pdb
+*.log
+
+# Archivos de paquetes
+*.nupkg
+*.snupkg
+packages/
+*.nuspec
+
+# Archivos de caché y temporales
+*.tmp
+*.cache
+*.db
+*.bak
+
+# Configuración local
+appsettings.Development.json
+appsettings.Local.json
+
+# Archivos del sistema
+Thumbs.db
+Desktop.ini
+
+# Archivos de entorno y secretos
+.env
+secrets.json
+
+# Archivos de herramientas de Visual Studio
+.vscode/
+.idea/
