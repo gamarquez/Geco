@@ -1,0 +1,149 @@
+﻿<!-- ============================================= -->
+<!-- Archivo: Views/Profesionales/Index.cshtml -->
+<!-- ============================================= -->
+@model List<Entities.ProfesionalDto>
+
+@{
+    ViewData["Title"] = "Profesionales";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="bi bi-person-badge"></i> Profesionales</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-action="Crear" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Profesional
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form asp-action="Buscar" method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text"
+                           name="termino"
+                           class="form-control"
+                           placeholder="Buscar por nombre, apellido, matrícula o especialidad..."
+                           value="@ViewBag.TerminoBusqueda" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de profesionales -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Apellido y Nombre</th>
+                                <th>Matrícula</th>
+                                <th>Especialidad</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var profesional in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@profesional.NombreCompleto</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@profesional.Matricula</span>
+                                    </td>
+                                    <td>@(profesional.Especialidad ?? "-")</td>
+                                    <td>@(profesional.Telefono ?? "-")</td>
+                                    <td>@(profesional.Email ?? "-")</td>
+                                    <td>
+                                        @if (profesional.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Detalle"
+                                               asp-route-id="@profesional.ProfesionalId"
+                                               class="btn btn-sm btn-info"
+                                               title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Editar"
+                                               asp-route-id="@profesional.ProfesionalId"
+                                               class="btn btn-sm btn-warning"
+                                               title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="confirmarEliminacion(@profesional.ProfesionalId, '@profesional.NombreCompleto')"
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <p class="text-muted">Total de profesionales: <strong>@Model.Count</strong></p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay profesionales registrados.
+            <a asp-action="Crear">Crear el primero</a>
+        </div>
+    }
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<form id="formEliminar" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function confirmarEliminacion(profesionalId, nombre) {
+            if (confirm('¿Está seguro que desea eliminar al profesional ' + nombre + '?')) {
+                var form = document.getElementById('formEliminar');
+                form.action = '/Profesionales/Eliminar/' + profesionalId;
+                form.submit();
+            }
+        }
+    </script>
+}

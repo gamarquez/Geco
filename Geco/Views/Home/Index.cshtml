@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Inicio - GECO";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="jumbotron bg-light p-5 rounded shadow-sm">
+                <h1 class="display-4">¡Bienvenido a GECO!</h1>
+                <p class="lead">Sistema de Gestión y Consultorios</p>
+                <hr class="my-4">
+                @if (ViewBag.UsuarioActual != null)
+                {
+                    <p class="mb-3">
+                        <strong>Usuario:</strong> @ViewBag.NombreUsuario<br/>
+                        <strong>Tipo:</strong> @ViewBag.TipoUsuario
+                    </p>
+                }
+                <div class="mt-4">
+                    <a class="btn btn-primary btn-lg me-2" asp-controller="Auth" asp-action="CambiarPassword">
+                        <i class="bi bi-shield-lock"></i> Cambiar Contraseña
+                    </a>
+                    <a class="btn btn-outline-secondary btn-lg" asp-controller="Auth" asp-action="Logout">
+                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+                    @TempData["Mensaje"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

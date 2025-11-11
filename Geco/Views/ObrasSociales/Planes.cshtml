@@ -1,0 +1,131 @@
+﻿@model List<Entities.PlanDto>
+
+@{
+    ViewData["Title"] = "Planes de Obra Social";
+    var obraSocial = ViewBag.ObraSocial as Entities.ObraSocialDto;
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2>
+                <i class="bi bi-card-list"></i> Planes de @obraSocial.Nombre
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index">Obras Sociales</a>
+                    </li>
+                    <li class="breadcrumb-item active">@obraSocial.Nombre</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-controller="Planes" asp-action="Crear" asp-route-obraSocialId="@obraSocial.ObraSocialId"
+               class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Plan
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Código</th>
+                                <th>Descripción</th>
+                                <th>Cobertura</th>
+                                <th>Copago</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var plan in Model)
+                            {
+                                <tr>
+                                    <td><strong>@plan.Nombre</strong></td>
+                                    <td>@(plan.Codigo ?? "-")</td>
+                                    <td>@(plan.Descripcion ?? "-")</td>
+                                    <td>@plan.CoberturaTexto</td>
+                                    <td>@(plan.Copago.HasValue ? $"${plan.Copago:N2}" : "-")</td>
+                                    <td>
+                                        @if (plan.Activo)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-controller="Planes" asp-action="Detalle" asp-route-id="@plan.PlanId"
+                                               class="btn btn-sm btn-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-controller="Planes" asp-action="Editar" asp-route-id="@plan.PlanId"
+                                               class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    onclick="confirmarEliminacion(@plan.PlanId, '@plan.Nombre', @obraSocial.ObraSocialId)"
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <p class="text-muted">Total: <strong>@Model.Count</strong> planes</p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Esta obra social no tiene planes registrados.
+            <a asp-controller="Planes" asp-action="Crear" asp-route-obraSocialId="@obraSocial.ObraSocialId">Crear el primero</a>
+        </div>
+    }
+</div>
+
+<form id="formEliminar" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="obraSocialId" id="obraSocialIdHidden" />
+</form>
+
+@section Scripts {
+    <script>
+        function confirmarEliminacion(planId, nombre, obraSocialId) {
+            if (confirm('¿Está seguro que desea eliminar el plan ' + nombre + '?')) {
+                document.getElementById('obraSocialIdHidden').value = obraSocialId;
+                var form = document.getElementById('formEliminar');
+                form.action = '/Planes/Eliminar/' + planId;
+                form.submit();
+            }
+        }
+    </script>
+}

@@ -1,0 +1,248 @@
+﻿@model Entities.ActualizarPacienteDto
+
+@{
+    ViewData["Title"] = "Editar Paciente";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil"></i> Editar Paciente
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Editar" method="post">
+                        <input type="hidden" asp-for="PacienteId" />
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        }
+
+                        <h5 class="mb-3"><i class="bi bi-person"></i> Datos Personales</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Nombre" class="form-label">Nombre *</label>
+                                <input asp-for="Nombre" class="form-control" required />
+                                <span asp-validation-for="Nombre" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Apellido" class="form-label">Apellido *</label>
+                                <input asp-for="Apellido" class="form-control" required />
+                                <span asp-validation-for="Apellido" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="TipoDocumento" class="form-label">Tipo Doc *</label>
+                                <select asp-for="TipoDocumento" class="form-select" required>
+                                    <option value="DNI">DNI</option>
+                                    <option value="LC">LC</option>
+                                    <option value="LE">LE</option>
+                                    <option value="Pasaporte">Pasaporte</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="NumeroDocumento" class="form-label">Número Doc *</label>
+                                <input asp-for="NumeroDocumento" class="form-control" required />
+                                <span asp-validation-for="NumeroDocumento" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="FechaNacimiento" class="form-label">Fecha Nac.</label>
+                                <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="Sexo" class="form-label">Sexo</label>
+                                <select asp-for="Sexo" class="form-select">
+                                    <option value="">-- Seleccionar --</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-telephone"></i> Contacto</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Telefono" class="form-label">Teléfono</label>
+                                <input asp-for="Telefono" class="form-control" type="tel" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="TelefonoAlternativo" class="form-label">Tel. Alternativo</label>
+                                <input asp-for="TelefonoAlternativo" class="form-control" type="tel" />
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Email" class="form-label">Email</label>
+                                <input asp-for="Email" class="form-control" type="email" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Domicilio</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Direccion" class="form-label">Dirección</label>
+                                <input asp-for="Direccion" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Localidad" class="form-label">Localidad</label>
+                                <input asp-for="Localidad" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Provincia" class="form-label">Provincia</label>
+                                <input asp-for="Provincia" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CodigoPostal" class="form-label">Código Postal</label>
+                                <input asp-for="CodigoPostal" class="form-control" />
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-shield-check"></i> Cobertura Médica *</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="ObraSocialId" class="form-label">Obra Social *</label>
+                                <select asp-for="ObraSocialId"
+                                        asp-items="ViewBag.ObrasSociales"
+                                        class="form-select"
+                                        id="obraSocialSelect"
+                                        required>
+                                    <option value="">-- Seleccionar --</option>
+                                </select>
+                                <span asp-validation-for="ObraSocialId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="PlanId" class="form-label">Plan *</label>
+                                <select asp-for="PlanId"
+                                        asp-items="ViewBag.Planes"
+                                        class="form-select"
+                                        id="planSelect"
+                                        required>
+                                    <option value="">-- Seleccionar --</option>
+                                </select>
+                                <span asp-validation-for="PlanId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="NumeroAfiliado" class="form-label">Nº Afiliado</label>
+                                <input asp-for="NumeroAfiliado" class="form-control" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Observaciones" class="form-label">Observaciones</label>
+                            <textarea asp-for="Observaciones"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Información adicional del paciente (opcional)"
+                                      aria-required="false"></textarea>
+                            <span asp-validation-for="Observaciones" class="text-danger"></span>
+                            <small class="form-text text-muted">Campo opcional</small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="Activo" class="form-check-input" type="checkbox" />
+                            <label asp-for="Activo" class="form-check-label">Activo</label>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Remover validación requerida del campo observaciones
+            var observacionesField = document.querySelector('textarea[name="Observaciones"]');
+            if (observacionesField) {
+                observacionesField.removeAttribute('required');
+                observacionesField.removeAttribute('data-val-required');
+            }
+
+            var obraSocialSelect = document.getElementById('obraSocialSelect');
+            var planSelect = document.getElementById('planSelect');
+
+            if (obraSocialSelect && planSelect) {
+                obraSocialSelect.addEventListener('change', function () {
+                    var obraSocialId = this.value;
+
+                    console.log('Obra Social seleccionada:', obraSocialId);
+
+                    planSelect.innerHTML = '<option value="">Cargando...</option>';
+                    planSelect.disabled = true;
+
+                    if (!obraSocialId) {
+                        planSelect.innerHTML = '<option value="">-- Seleccionar obra social primero --</option>';
+                        planSelect.disabled = false;
+                        return;
+                    }
+
+                    fetch('/Pacientes/ObtenerPlanesPorObraSocial?obraSocialId=' + obraSocialId)
+                        .then(response => {
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Error en la respuesta del servidor');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Planes recibidos:', data);
+                            planSelect.innerHTML = '<option value="">-- Seleccionar plan --</option>';
+
+                            if (data && data.length > 0) {
+                                data.forEach(function (plan) {
+                                    var option = document.createElement('option');
+                                    option.value = plan.value;
+                                    option.text = plan.text;
+                                    planSelect.appendChild(option);
+                                });
+                            } else {
+                                planSelect.innerHTML = '<option value="">No hay planes disponibles</option>';
+                            }
+
+                            planSelect.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error al cargar planes:', error);
+                            planSelect.innerHTML = '<option value="">Error al cargar planes</option>';
+                            planSelect.disabled = false;
+                            alert('Error al cargar los planes. Por favor, intente nuevamente.');
+                        });
+                });
+            }
+        });
+    </script>
+}

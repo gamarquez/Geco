@@ -1,0 +1,107 @@
+﻿@model Entities.PlanDto
+
+@{
+    ViewData["Title"] = "Detalle del Plan";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-card-list"></i> Detalle del Plan
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <h5>@Model.NombreCompleto</h5>
+                            <p class="text-muted">@(Model.Descripcion ?? "Sin descripción")</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success fs-6">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Obra Social:</label>
+                            <p>@Model.ObraSocialNombre</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre del Plan:</label>
+                            <p>@Model.Nombre</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Código:</label>
+                            <p>@(Model.Codigo ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Fecha de Alta:</label>
+                            <p>@Model.FechaAlta.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Porcentaje de Cobertura:</label>
+                            <p>
+                                @if (Model.PorcentajeCobertura.HasValue)
+                                {
+                                    <span class="badge bg-primary fs-6">@Model.PorcentajeCobertura%</span>
+                                }
+                                else
+                                {
+                                    <span>No especificado</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Copago:</label>
+                            <p>
+                                @if (Model.Copago.HasValue)
+                                {
+                                    <span class="badge bg-success fs-6">$@Model.Copago.Value.ToString("N2")</span>
+                                }
+                                else
+                                {
+                                    <span>No especificado</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                    {
+                        <div class="mb-3">
+                            <label class="fw-bold">Observaciones:</label>
+                            <p class="text-muted">@Model.Observaciones</p>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-action="Editar" asp-route-id="@Model.PlanId" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a asp-controller="ObrasSociales" asp-action="Planes" asp-route-id="@Model.ObraSocialId" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver a Planes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

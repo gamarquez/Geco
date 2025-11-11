@@ -1,0 +1,104 @@
+﻿<!-- ============================================= -->
+<!-- Archivo: Views/Profesionales/Detalle.cshtml -->
+<!-- ============================================= -->
+@model Entities.ProfesionalDto
+
+@{
+    ViewData["Title"] = "Detalle del Profesional";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-badge"></i> Detalle del Profesional
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h5>@Model.NombreCompleto</h5>
+                            <p class="text-muted">@Model.MatriculaEspecialidad</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success fs-6">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Nombre:</label>
+                            <p>@Model.Nombre</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Apellido:</label>
+                            <p>@Model.Apellido</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Matrícula:</label>
+                            <p><span class="badge bg-secondary">@Model.Matricula</span></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Especialidad:</label>
+                            <p>@(Model.Especialidad ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Teléfono:</label>
+                            <p>@(Model.Telefono ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Email:</label>
+                            <p>@(Model.Email ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">Dirección:</label>
+                        <p>@(Model.Direccion ?? "-")</p>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                    {
+                        <div class="mb-3">
+                            <label class="fw-bold">Observaciones:</label>
+                            <p class="text-muted">@Model.Observaciones</p>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Fecha de Alta:</label>
+                            <p>@Model.FechaAlta.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-action="Editar" asp-route-id="@Model.ProfesionalId" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,187 @@
+﻿@model Entities.PacienteDto
+
+@{
+    ViewData["Title"] = "Detalle del Paciente";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person"></i> Detalle del Paciente
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <h5>@Model.NombreCompleto</h5>
+                            <p class="text-muted">
+                                @Model.DocumentoCompleto
+                                @if (Model.Edad.HasValue)
+                                {
+                                    <span> - @Model.Edad años</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            @if (Model.Activo)
+                            {
+                                <span class="badge bg-success fs-6">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger fs-6">Inactivo</span>
+                            }
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3"><i class="bi bi-person"></i> Datos Personales</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Nombre:</label>
+                            <p>@Model.Nombre</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Apellido:</label>
+                            <p>@Model.Apellido</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Sexo:</label>
+                            <p>@(Model.Sexo ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Tipo Documento:</label>
+                            <p>@Model.TipoDocumento</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Número Documento:</label>
+                            <p>@Model.NumeroDocumento</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Fecha Nacimiento:</label>
+                            <p>
+                                @if (Model.FechaNacimiento.HasValue)
+                                {
+                                    @Model.FechaNacimiento.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="mb-3"><i class="bi bi-telephone"></i> Datos de Contacto</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Teléfono:</label>
+                            <p>@(Model.Telefono ?? "-")</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Teléfono Alternativo:</label>
+                            <p>@(Model.TelefonoAlternativo ?? "-")</p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Email:</label>
+                            <p>@(Model.Email ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="mb-3"><i class="bi bi-geo-alt"></i> Domicilio</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Dirección:</label>
+                            <p>@(Model.Direccion ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Localidad:</label>
+                            <p>@(Model.Localidad ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Provincia:</label>
+                            <p>@(Model.Provincia ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Código Postal:</label>
+                            <p>@(Model.CodigoPostal ?? "-")</p>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <h5 class="mb-3"><i class="bi bi-shield-check"></i> Cobertura Médica</h5>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Obra Social:</label>
+                            <p>
+                                @if (!string.IsNullOrEmpty(Model.ObraSocialNombre))
+                                {
+                                    <span class="badge bg-primary">@Model.ObraSocialNombre</span>
+                                }
+                                else
+                                {
+                                    <span>Sin cobertura</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Plan:</label>
+                            <p>
+                                @if (!string.IsNullOrEmpty(Model.PlanNombre))
+                                {
+                                    <span class="badge bg-success">@Model.PlanNombre</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold">Número de Afiliado:</label>
+                            <p>@(Model.NumeroAfiliado ?? "-")</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                    {
+                        <hr class="my-4" />
+                        <div class="mb-3">
+                            <label class="fw-bold">Observaciones:</label>
+                            <p class="text-muted">@Model.Observaciones</p>
+                        </div>
+                    }
+
+                    <hr class="my-4" />
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold">Fecha de Alta:</label>
+                            <p>@Model.FechaAlta.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a asp-action="Editar" asp-route-id="@Model.PacienteId" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
