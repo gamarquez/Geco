@@ -128,14 +128,16 @@
                         </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label asp-for="ObraSocialId" class="form-label">
+                                <label for="ObraSocialId" class="form-label">
                                     Obra Social *
                                     <small class="text-muted">(Paso 1)</small>
                                 </label>
-                                <select asp-for="ObraSocialId"
+                                <select name="ObraSocialId"
+                                        id="ObraSocialId"
                                         asp-items="ViewBag.ObrasSociales"
                                         class="form-select"
-                                        id="obraSocialSelect"
+                                        data-val="true"
+                                        data-val-required="La obra social es requerida"
                                         required>
                                     <option value="">-- Seleccionar --</option>
                                 </select>
@@ -143,13 +145,15 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label asp-for="PlanId" class="form-label">
+                                <label for="PlanId" class="form-label">
                                     Plan *
                                     <small class="text-muted">(Paso 2)</small>
                                 </label>
-                                <select asp-for="PlanId"
+                                <select name="PlanId"
+                                        id="PlanId"
                                         class="form-select"
-                                        id="planSelect"
+                                        data-val="true"
+                                        data-val-required="El plan es requerido"
                                         required>
                                     <option value="">-- Seleccionar obra social primero --</option>
                                 </select>
@@ -193,6 +197,8 @@
     <script>
         // Dropdown en cascada: cuando cambia la obra social, cargar los planes
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado, inicializando dropdown de planes...');
+
             // IMPORTANTE: Remover completamente cualquier validación del campo Observaciones
             var observacionesField = document.querySelector('textarea[name="Observaciones"]');
             if (observacionesField) {
@@ -206,22 +212,48 @@
                 }
             }
 
-            var obraSocialSelect = document.getElementById('obraSocialSelect');
-            var planSelect = document.getElementById('planSelect');
+            // Buscar el select de obra social por múltiples métodos para asegurar que lo encontramos
+            var obraSocialSelect = document.getElementById('ObraSocialId')
+                || document.querySelector('select[name="ObraSocialId"]');
+
+            var planSelect = document.getElementById('PlanId')
+                || document.querySelector('select[name="PlanId"]');
+
+            console.log('Obra Social Select encontrado:', obraSocialSelect ? 'SI' : 'NO');
+            console.log('Plan Select encontrado:', planSelect ? 'SI' : 'NO');
+
+            if (!obraSocialSelect || !planSelect) {
+                console.error('ERROR: No se pudieron encontrar los selectores');
+                console.log('Todos los selects en la página:', document.querySelectorAll('select'));
+                return;
+            }
+
+            console.log('ID del select de obra social:', obraSocialSelect.id);
+            console.log('Name del select de obra social:', obraSocialSelect.name);
 
             // Si ya hay una obra social seleccionada (por ejemplo, al retornar por error de validación)
             // cargar los planes correspondientes
             var obraSocialIdInicial = obraSocialSelect.value;
+            console.log('Valor inicial de obra social:', obraSocialIdInicial);
             if (obraSocialIdInicial) {
                 cargarPlanes(obraSocialIdInicial);
             }
 
-            if (obraSocialSelect && planSelect) {
-                obraSocialSelect.addEventListener('change', function() {
-                    var obraSocialId = this.value;
+            // Agregar el evento change con logging
+            obraSocialSelect.addEventListener('change', function(e) {
+                console.log('Evento change detectado en obra social');
+                console.log('Valor seleccionado:', this.value);
+                var obraSocialId = this.value;
+                if (obraSocialId) {
                     cargarPlanes(obraSocialId);
-                });
-            }
+                } else {
+                    console.log('No se seleccionó ninguna obra social');
+                    planSelect.innerHTML = '<option value="">-- Seleccionar obra social primero --</option>';
+                    planSelect.disabled = false;
+                }
+            });
+
+            console.log('Event listener agregado exitosamente');
 
             function cargarPlanes(obraSocialId) {
                 var planHelpText = document.getElementById('planHelpText');
