@@ -1,0 +1,201 @@
+@model List<Entities.TurnoDto>
+
+@{
+    ViewData["Title"] = "Agenda del Profesional";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="bi bi-calendar3"></i> Agenda del Profesional</h2>
+            @if (ViewBag.ProfesionalNombre != null)
+            {
+                <h5 class="text-muted">@ViewBag.ProfesionalNombre</h5>
+            }
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-action="Crear" asp-route-profesionalId="@ViewBag.ProfesionalId" asp-route-fecha="@ViewBag.Fecha" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Turno
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-list"></i> Ver Lista
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form asp-action="Agenda" method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Profesional</label>
+                    <select name="profesionalId" asp-items="ViewBag.Profesionales" class="form-select">
+                        <option value="">-- Seleccionar profesional --</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Fecha</label>
+                    <input type="date" name="fecha" class="form-control" value="@ViewBag.Fecha?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (ViewBag.MostrarMensaje == true)
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> @ViewBag.Mensaje
+        </div>
+    }
+    else if (ViewBag.Fecha != null)
+    {
+        <!-- Navegación de fechas -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-action="Agenda"
+                       asp-route-profesionalId="@ViewBag.ProfesionalId"
+                       asp-route-fecha="@(((DateTime)ViewBag.Fecha).AddDays(-1).ToString("yyyy-MM-dd"))"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-chevron-left"></i> Día Anterior
+                    </a>
+                    <h4 class="mb-0 text-center">
+                        <i class="bi bi-calendar-event"></i> @ViewBag.FechaFormateada
+                    </h4>
+                    <a asp-action="Agenda"
+                       asp-route-profesionalId="@ViewBag.ProfesionalId"
+                       asp-route-fecha="@(((DateTime)ViewBag.Fecha).AddDays(1).ToString("yyyy-MM-dd"))"
+                       class="btn btn-outline-primary">
+                        Día Siguiente <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <!-- Agenda del día -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Turnos del Día
+                        <span class="badge bg-light text-dark ms-2">@Model.Count turnos</span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="15%">Hora</th>
+                                    <th width="30%">Paciente</th>
+                                    <th width="30%">Motivo</th>
+                                    <th width="15%">Estado</th>
+                                    <th width="10%" class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var turno in Model.OrderBy(t => t.HoraInicio))
+                                {
+                                    <tr class="@(turno.Estado == "EnCurso" ? "table-primary" : "")">
+                                        <td>
+                                            <strong style="font-size: 1.1em;">@turno.HorarioFormateado</strong>
+                                            <br />
+                                            <small class="text-muted">@turno.DuracionMinutos min</small>
+                                        </td>
+                                        <td>
+                                            <strong>@turno.PacienteNombreCompleto</strong>
+                                            <br />
+                                            <small class="text-muted">
+                                                <i class="bi bi-telephone"></i> @(turno.PacienteTelefono ?? "Sin teléfono")
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @if (turno.MotivoConsulta.Length > 60)
+                                            {
+                                                <span>@turno.MotivoConsulta.Substring(0, 60)...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@turno.MotivoConsulta</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge @turno.EstadoBadgeClass">@turno.Estado</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Detalle" asp-route-id="@turno.TurnoId"
+                                                   class="btn btn-sm btn-info" title="Ver detalles">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @if (turno.Estado == "Pendiente" || turno.Estado == "Confirmado")
+                                                {
+                                                    <a asp-controller="HistoriasClinicas"
+                                                       asp-action="Crear"
+                                                       asp-route-pacienteId="@turno.PacienteId"
+                                                       class="btn btn-sm btn-success"
+                                                       title="Atender">
+                                                        <i class="bi bi-clipboard2-pulse"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <small><span class="badge bg-warning">Pendiente</span> @Model.Count(t => t.Estado == "Pendiente")</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small><span class="badge bg-info">Confirmado</span> @Model.Count(t => t.Estado == "Confirmado")</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small><span class="badge bg-success">Completado</span> @Model.Count(t => t.Estado == "Completado")</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small><span class="badge bg-danger">Cancelado</span> @Model.Count(t => t.Estado == "Cancelado")</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info text-center">
+                <i class="bi bi-calendar-x"></i>
+                <h5>No hay turnos programados para este día</h5>
+                <p>La agenda está libre para programar nuevos turnos.</p>
+                <a asp-action="Crear" asp-route-profesionalId="@ViewBag.ProfesionalId" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Programar Turno
+                </a>
+            </div>
+        }
+    }
+</div>
+
+@section Styles {
+    <style>
+        .table tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+    </style>
+}

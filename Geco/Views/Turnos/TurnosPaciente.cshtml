@@ -1,0 +1,177 @@
+@model List<Entities.TurnoDto>
+
+@{
+    ViewData["Title"] = "Turnos del Paciente";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-calendar-check"></i> Historial de Turnos</h2>
+            <h5 class="text-muted">@ViewBag.PacienteNombre</h5>
+            <p class="text-muted">Documento: @ViewBag.PacienteDocumento</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Crear" asp-route-pacienteId="@ViewBag.PacienteId" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Turno
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Estadísticas rápidas -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@Model.Count</h3>
+                        <small class="text-muted">Total Turnos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@Model.Count(t => t.Estado == "Completado")</h3>
+                        <small class="text-muted">Completados</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@Model.Count(t => t.Estado == "Pendiente" || t.Estado == "Confirmado")</h3>
+                        <small class="text-muted">Próximos</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-danger">@Model.Count(t => t.Estado == "Cancelado")</h3>
+                        <small class="text-muted">Cancelados</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline de turnos -->
+        <div class="row">
+            @foreach (var turno in Model)
+            {
+                <div class="col-md-12 mb-3">
+                    <div class="card @(turno.FechaTurno >= DateTime.Today ? "border-primary" : "")">
+                        <div class="card-header @(turno.FechaTurno >= DateTime.Today ? "bg-primary text-white" : "bg-light")">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <h6 class="mb-0">
+                                        <i class="bi bi-calendar-event"></i>
+                                        @turno.FechaTurno.ToString("dd/MM/yyyy")
+                                    </h6>
+                                    <small>@turno.HorarioFormateado</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <small>
+                                        <i class="bi bi-person-badge"></i>
+                                        Dr/a. @turno.ProfesionalNombreCompleto
+                                    </small>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="badge @turno.EstadoBadgeClass">@turno.Estado</span>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a asp-action="Detalle" asp-route-id="@turno.TurnoId"
+                                           class="btn btn-sm btn-info" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        @if (turno.Estado != "Completado" && turno.Estado != "Cancelado" && turno.FechaTurno >= DateTime.Today)
+                                        {
+                                            <a asp-action="Editar" asp-route-id="@turno.TurnoId"
+                                               class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-2">
+                                        <strong><i class="bi bi-chat-left-text text-info"></i> Motivo:</strong>
+                                        @turno.MotivoConsulta
+                                    </p>
+
+                                    @if (!string.IsNullOrWhiteSpace(turno.Observaciones))
+                                    {
+                                        <p class="mb-2">
+                                            <strong><i class="bi bi-journal-text text-secondary"></i> Observaciones:</strong>
+                                            @turno.Observaciones
+                                        </p>
+                                    }
+
+                                    @if (turno.Estado == "Cancelado" && !string.IsNullOrWhiteSpace(turno.MotivoCancelacion))
+                                    {
+                                        <div class="alert alert-danger mb-0 mt-2">
+                                            <small>
+                                                <strong><i class="bi bi-x-circle"></i> Cancelado:</strong>
+                                                @turno.MotivoCancelacion
+                                            </small>
+                                        </div>
+                                    }
+
+                                    @if (turno.Estado == "Completado")
+                                    {
+                                        <div class="mt-2">
+                                            <a asp-controller="HistoriasClinicas"
+                                               asp-action="HistorialPaciente"
+                                               asp-route-pacienteId="@turno.PacienteId"
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-file-medical"></i> Ver Historia Clínica
+                                            </a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-muted">
+                            <small>
+                                <i class="bi bi-clock-history"></i>
+                                Registrado: @turno.FechaAlta.ToString("dd/MM/yyyy HH:mm")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-3">
+            <p class="text-muted">Total de turnos: <strong>@Model.Count</strong></p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i>
+            <h5>No hay turnos registrados para este paciente</h5>
+            <p>Este paciente aún no tiene turnos en el sistema.</p>
+            <a asp-action="Crear" asp-route-pacienteId="@ViewBag.PacienteId" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Programar Primer Turno
+            </a>
+        </div>
+    }
+</div>

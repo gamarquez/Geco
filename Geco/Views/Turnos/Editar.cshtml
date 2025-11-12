@@ -1,0 +1,151 @@
+@model Entities.ActualizarTurnoDto
+
+@{
+    ViewData["Title"] = "Editar Turno";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Editar Turno
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Editar" method="post">
+                        @Html.HiddenFor(m => m.TurnoId)
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        }
+
+                        <div class="alert alert-info">
+                            <strong><i class="bi bi-info-circle"></i> Paciente:</strong> @ViewBag.PacienteNombre
+                            | <strong>Registrado:</strong> @ViewBag.FechaAlta.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+
+                        <h5 class="mb-3"><i class="bi bi-person-badge"></i> Información del Turno</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfesionalId" class="form-label">Profesional *</label>
+                                <select asp-for="ProfesionalId"
+                                        asp-items="ViewBag.Profesionales"
+                                        class="form-select"
+                                        required>
+                                    <option value="">-- Seleccionar profesional --</option>
+                                </select>
+                                <span asp-validation-for="ProfesionalId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Estado" class="form-label">Estado *</label>
+                                <select asp-for="Estado" class="form-select">
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Confirmado">Confirmado</option>
+                                    <option value="EnCurso">En Curso</option>
+                                    <option value="Completado">Completado</option>
+                                    <option value="Cancelado">Cancelado</option>
+                                    <option value="Ausente">Ausente</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        @Html.HiddenFor(m => m.PacienteId)
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="FechaTurno" class="form-label">Fecha *</label>
+                                <input asp-for="FechaTurno" class="form-control" type="date" required />
+                                <span asp-validation-for="FechaTurno" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="HoraInicio" class="form-label">Hora *</label>
+                                <input asp-for="HoraInicio" class="form-control" type="time" required />
+                                <span asp-validation-for="HoraInicio" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="DuracionMinutos" class="form-label">Duración (min) *</label>
+                                <select asp-for="DuracionMinutos" class="form-select" required>
+                                    <option value="15">15 minutos</option>
+                                    <option value="30">30 minutos</option>
+                                    <option value="45">45 minutos</option>
+                                    <option value="60">1 hora</option>
+                                    <option value="90">1 hora 30 min</option>
+                                    <option value="120">2 horas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MotivoConsulta" class="form-label">Motivo de Consulta *</label>
+                            <textarea asp-for="MotivoConsulta"
+                                      class="form-control"
+                                      rows="2"
+                                      required></textarea>
+                            <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Observaciones" class="form-label">Observaciones</label>
+                            <textarea asp-for="Observaciones"
+                                      class="form-control"
+                                      rows="2"></textarea>
+                        </div>
+
+                        <div id="motivoCancelacionDiv" class="mb-3" style="display: none;">
+                            <label asp-for="MotivoCancelacion" class="form-label">Motivo de Cancelación *</label>
+                            <textarea asp-for="MotivoCancelacion"
+                                      class="form-control"
+                                      rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Activo" class="form-check-input" type="checkbox" />
+                                <label asp-for="Activo" class="form-check-label">Turno Activo</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a asp-action="Detalle" asp-route-id="@Model.TurnoId" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var estadoSelect = document.getElementById('Estado');
+            var motivoCancelacionDiv = document.getElementById('motivoCancelacionDiv');
+
+            function toggleMotivoCancelacion() {
+                if (estadoSelect.value === 'Cancelado') {
+                    motivoCancelacionDiv.style.display = 'block';
+                } else {
+                    motivoCancelacionDiv.style.display = 'none';
+                }
+            }
+
+            estadoSelect.addEventListener('change', toggleMotivoCancelacion);
+            toggleMotivoCancelacion(); // Ejecutar al cargar
+        });
+    </script>
+}
