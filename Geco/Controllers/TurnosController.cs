@@ -15,55 +15,88 @@ namespace Geco.Controllers
         private readonly ITurnoService _turnoService;
         private readonly IPacienteService _pacienteService;
         private readonly IProfesionalService _profesionalService;
+        private readonly IDisponibilidadAgendaService _disponibilidadAgendaService;
 
         public TurnosController(
             ITurnoService turnoService,
             IPacienteService pacienteService,
-            IProfesionalService profesionalService)
+            IProfesionalService profesionalService,
+            IDisponibilidadAgendaService disponibilidadAgendaService)
         {
             _turnoService = turnoService;
             _pacienteService = pacienteService;
             _profesionalService = profesionalService;
+            _disponibilidadAgendaService = disponibilidadAgendaService;
         }
 
         // GET: /Turnos
-        public IActionResult Index(int? pacienteId, int? profesionalId, DateTime? fechaDesde, DateTime? fechaHasta, string estado, int pageNumber = 1)
+        public IActionResult Index(int? profesionalId, DateTime? fechaDesde, DateTime? fechaHasta)
         {
             try
             {
-                var filtro = new TurnoFiltroDto
+                // Si no hay filtros, solo mostrar el formulario de búsqueda
+                if (!profesionalId.HasValue || !fechaDesde.HasValue)
                 {
-                    PacienteId = pacienteId,
-                    ProfesionalId = profesionalId,
-                    FechaDesde = fechaDesde,
-                    FechaHasta = fechaHasta,
-                    Estado = estado,
-                    PageNumber = pageNumber,
-                    PageSize = 20,
-                    SoloActivos = true
-                };
+                    ViewBag.MostrarFormulario = true;
+                    CargarProfesionalesEnViewBag(profesionalId);
+                    CargarPacientesEnViewBag();
+                    return View(new List<DateTime>());
+                }
 
-                int totalRegistros;
-                var turnos = _turnoService.Listar(filtro, out totalRegistros);
+                // Si no se especifica fechaHasta, usar fechaDesde
+                DateTime fechaInicio = fechaDesde.Value;
+                DateTime fechaFin = fechaHasta ?? fechaDesde.Value;
 
-                ViewBag.TotalRegistros = totalRegistros;
-                ViewBag.PageNumber = pageNumber;
-                ViewBag.TotalPaginas = totalRegistros > 0 ? (int)Math.Ceiling((double)totalRegistros / filtro.PageSize) : 1;
-                ViewBag.PacienteId = pacienteId;
+                // Validar que el rango no sea mayor a 7 días
+                if ((fechaFin - fechaInicio).Days > 7)
+                {
+                    SetMensajeError("El rango de fechas no puede ser mayor a 7 días");
+                    ViewBag.MostrarFormulario = true;
+                    CargarProfesionalesEnViewBag(profesionalId);
+                    CargarPacientesEnViewBag();
+                    return View(new List<DateTime>());
+                }
+
+                // Generar lista de fechas en el rango
+                var fechas = new List<DateTime>();
+                for (DateTime fecha = fechaInicio; fecha <= fechaFin; fecha = fecha.AddDays(1))
+                {
+                    fechas.Add(fecha);
+                }
+
+                // Obtener el profesional
+                var profesional = _profesionalService.ObtenerPorId(profesionalId.Value);
+
+                // Para cada fecha, obtener disponibilidades y turnos
+                var agendaPorFecha = new Dictionary<DateTime, (List<TimeSpan> HorariosLibres, List<TurnoDto> Turnos)>();
+
+                foreach (var fecha in fechas)
+                {
+                    var horariosLibres = _disponibilidadAgendaService.ObtenerHorariosLibres(profesionalId.Value, fecha);
+                    var turnos = _turnoService.ObtenerAgendaProfesional(profesionalId.Value, fecha);
+                    agendaPorFecha[fecha] = (horariosLibres, turnos);
+                }
+
                 ViewBag.ProfesionalId = profesionalId;
-                ViewBag.FechaDesde = fechaDesde;
-                ViewBag.FechaHasta = fechaHasta;
-                ViewBag.Estado = estado;
+                ViewBag.ProfesionalNombre = profesional?.NombreCompleto ?? "Desconocido";
+                ViewBag.FechaDesde = fechaInicio;
+                ViewBag.FechaHasta = fechaFin;
+                ViewBag.Fechas = fechas;
+                ViewBag.AgendaPorFecha = agendaPorFecha;
+                ViewBag.MostrarFormulario = false;
 
-                // Cargar selectlists para filtros
-                CargarPacientesYProfesionalesEnViewBag(pacienteId, profesionalId);
+                CargarProfesionalesEnViewBag(profesionalId);
+                CargarPacientesEnViewBag();
 
-                return View(turnos);
+                return View(fechas);
             }
             catch (Exception ex)
             {
-                SetMensajeError($"Error al cargar turnos: {ex.Message}");
-                return View(new List<TurnoDto>());
+                SetMensajeError($"Error al cargar disponibilidades: {ex.Message}");
+                ViewBag.MostrarFormulario = true;
+                CargarProfesionalesEnViewBag(profesionalId);
+                CargarPacientesEnViewBag();
+                return View(new List<DateTime>());
             }
         }
 
@@ -297,11 +330,15 @@ namespace Geco.Controllers
                 var turnos = _turnoService.ObtenerAgendaProfesional(profesionalId.Value, fechaSeleccionada);
                 var profesional = _profesionalService.ObtenerPorId(profesionalId.Value);
 
+                // Obtener horarios disponibles basados en las disponibilidades configuradas
+                var horariosLibres = _disponibilidadAgendaService.ObtenerHorariosLibres(profesionalId.Value, fechaSeleccionada);
+
                 ViewBag.ProfesionalId = profesionalId;
                 ViewBag.ProfesionalNombre = profesional?.NombreCompleto ?? "Desconocido";
                 ViewBag.Fecha = fechaSeleccionada;
                 ViewBag.FechaFormateada = fechaSeleccionada.ToString("dddd, dd 'de' MMMM 'de' yyyy",
                     new System.Globalization.CultureInfo("es-ES"));
+                ViewBag.HorariosLibres = horariosLibres;
 
                 CargarProfesionalesEnViewBag(profesionalId);
 
@@ -314,6 +351,91 @@ namespace Geco.Controllers
                 ViewBag.MostrarMensaje = false;
                 CargarProfesionalesEnViewBag(profesionalId);
                 return View(new List<TurnoDto>());
+            }
+        }
+
+        // GET: /Turnos/BuscarPacientePorDocumento?tipoDocumento=DNI&numeroDocumento=12345678
+        [HttpGet]
+        public JsonResult BuscarPacientePorDocumento(string tipoDocumento, string numeroDocumento)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tipoDocumento) || string.IsNullOrWhiteSpace(numeroDocumento))
+                {
+                    return Json(new { encontrado = false, mensaje = "Debe ingresar tipo y número de documento" });
+                }
+
+                var paciente = _pacienteService.ObtenerPorDocumento(tipoDocumento, numeroDocumento);
+
+                if (paciente != null && paciente.Activo)
+                {
+                    return Json(new
+                    {
+                        encontrado = true,
+                        paciente = new
+                        {
+                            pacienteId = paciente.PacienteId,
+                            nombreCompleto = paciente.NombreCompleto,
+                            documento = paciente.DocumentoCompleto,
+                            telefono = paciente.Telefono,
+                            obraSocial = paciente.ObraSocialNombre,
+                            plan = paciente.PlanNombre
+                        }
+                    });
+                }
+                else
+                {
+                    return Json(new { encontrado = false, mensaje = "No se encontró un paciente activo con ese documento" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { encontrado = false, mensaje = $"Error al buscar paciente: {ex.Message}" });
+            }
+        }
+
+        // POST: /Turnos/AsignarTurnoRapido
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AsignarTurnoRapido(int pacienteId, int profesionalId, DateTime fecha, string hora, int duracionMinutos, string motivoConsulta)
+        {
+            try
+            {
+                // Parsear la hora
+                if (!TimeSpan.TryParse(hora, out TimeSpan horaInicio))
+                {
+                    SetMensajeError("La hora proporcionada no es válida");
+                    return RedirectToAction(nameof(Agenda), new { profesionalId, fecha });
+                }
+
+                var model = new CrearTurnoDto
+                {
+                    PacienteId = pacienteId,
+                    ProfesionalId = profesionalId,
+                    FechaTurno = fecha,
+                    HoraInicio = horaInicio,
+                    DuracionMinutos = duracionMinutos,
+                    MotivoConsulta = motivoConsulta,
+                    Estado = "Pendiente"
+                };
+
+                var resultado = _turnoService.Crear(model);
+
+                if (resultado.exitoso)
+                {
+                    SetMensajeExito(resultado.mensaje);
+                }
+                else
+                {
+                    SetMensajeError(resultado.mensaje);
+                }
+
+                return RedirectToAction(nameof(Agenda), new { profesionalId, fecha });
+            }
+            catch (Exception ex)
+            {
+                SetMensajeError($"Error al asignar el turno: {ex.Message}");
+                return RedirectToAction(nameof(Agenda), new { profesionalId, fecha });
             }
         }
 
@@ -357,6 +479,21 @@ namespace Geco.Controllers
                 "ProfesionalId",
                 "NombreCompleto",
                 profesionalIdSeleccionado
+            );
+        }
+
+        private void CargarPacientesEnViewBag(int? pacienteIdSeleccionado = null)
+        {
+            var pacientes = _pacienteService.ListarTodos(soloActivos: true)
+                .OrderBy(p => p.Apellido)
+                .ThenBy(p => p.Nombre)
+                .ToList();
+
+            ViewBag.Pacientes = new SelectList(
+                pacientes,
+                "PacienteId",
+                "NombreCompleto",
+                pacienteIdSeleccionado
             );
         }
     }

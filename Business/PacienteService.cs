@@ -45,6 +45,21 @@ namespace Business
             }
         }
 
+        public PacienteDto ObtenerPorDocumento(string tipoDocumento, string numeroDocumento)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(tipoDocumento) || string.IsNullOrWhiteSpace(numeroDocumento))
+                    return null;
+
+                return _pacienteData.ObtenerPorDocumento(tipoDocumento, numeroDocumento);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al obtener paciente por documento: {ex.Message}", ex);
+            }
+        }
+
         public (bool exitoso, string mensaje, int pacienteId) Crear(CrearPacienteDto dto)
         {
             // Validaciones básicas
@@ -170,7 +185,34 @@ namespace Business
             return !_pacienteData.ExisteDocumento(tipoDocumento, numeroDocumento, pacienteIdExcluir);
         }
 
-        private (bool esValido, string mensaje) ValidarDatosPaciente(dynamic dto)
+        private (bool esValido, string mensaje) ValidarDatosPaciente(CrearPacienteDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Nombre))
+                return (false, "El nombre es requerido");
+
+            if (string.IsNullOrWhiteSpace(dto.Apellido))
+                return (false, "El apellido es requerido");
+
+            if (string.IsNullOrWhiteSpace(dto.TipoDocumento))
+                return (false, "El tipo de documento es requerido");
+
+            if (string.IsNullOrWhiteSpace(dto.NumeroDocumento))
+                return (false, "El número de documento es requerido");
+
+            if (dto.NumeroDocumento.Length < 6)
+                return (false, "El número de documento debe tener al menos 6 caracteres");
+
+            // VALIDACIÓN: Obra Social y Plan son OBLIGATORIOS
+            if (!dto.ObraSocialId.HasValue || dto.ObraSocialId.Value <= 0)
+                return (false, "La obra social es requerida");
+
+            if (!dto.PlanId.HasValue || dto.PlanId.Value <= 0)
+                return (false, "El plan es requerido");
+
+            return (true, null);
+        }
+
+        private (bool esValido, string mensaje) ValidarDatosPaciente(ActualizarPacienteDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Nombre))
                 return (false, "El nombre es requerido");

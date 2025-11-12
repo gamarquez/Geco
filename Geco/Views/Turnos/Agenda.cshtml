@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Agenda del Profesional";
+    var horariosLibres = ViewBag.HorariosLibres as List<TimeSpan> ?? new List<TimeSpan>();
 }
 
 <div class="container-fluid mt-4">
@@ -14,9 +15,6 @@
             }
         </div>
         <div class="col-md-6 text-end">
-            <a asp-action="Crear" asp-route-profesionalId="@ViewBag.ProfesionalId" asp-route-fecha="@ViewBag.Fecha" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo Turno
-            </a>
             <a asp-action="Index" class="btn btn-secondary">
                 <i class="bi bi-list"></i> Ver Lista
             </a>
@@ -85,139 +83,79 @@
             </div>
         </div>
 
-        @if (Model != null && Model.Any())
+        @if (horariosLibres.Any())
         {
-            <!-- Agenda del día -->
+            <!-- Vista de Agenda con Slots -->
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-clock-history"></i> Turnos del Día
-                        <span class="badge bg-light text-dark ms-2">@Model.Count turnos</span>
+                        <i class="bi bi-clock-history"></i> Disponibilidad de Agenda
+                        <span class="badge bg-light text-dark ms-2">@horariosLibres.Count slots disponibles</span>
                     </h5>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th width="15%">Hora</th>
-                                    <th width="30%">Paciente</th>
-                                    <th width="30%">Motivo</th>
-                                    <th width="15%">Estado</th>
-                                    <th width="10%" class="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var turno in Model.OrderBy(t => t.HoraInicio))
+                <div class="card-body p-3">
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> Haga clic en un horario libre (verde) para asignar un turno
+                    </div>
+                    <div class="row g-2">
+                        @foreach (var horario in horariosLibres.OrderBy(h => h))
+                        {
+                            var turnoEnHorario = Model?.FirstOrDefault(t => t.HoraInicio == horario);
+                            var esOcupado = turnoEnHorario != null;
+
+                            <div class="col-md-3 col-lg-2">
+                                @if (esOcupado)
                                 {
-                                    <tr class="@(turno.Estado == "EnCurso" ? "table-primary" : "")">
-                                        <td>
-                                            <strong style="font-size: 1.1em;">@turno.HorarioFormateado</strong>
-                                            <br />
-                                            <small class="text-muted">@turno.DuracionMinutos min</small>
-                                        </td>
-                                        <td>
-                                            <strong>@turno.PacienteNombreCompleto</strong>
-                                            <br />
-                                            <small class="text-muted">
-                                                <i class="bi bi-telephone"></i> @(turno.PacienteTelefono ?? "Sin teléfono")
-                                            </small>
-                                        </td>
-                                        <td>
-                                            @if (turno.MotivoConsulta.Length > 60)
-                                            {
-                                                <span>@turno.MotivoConsulta.Substring(0, 60)...</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@turno.MotivoConsulta</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="badge @turno.EstadoBadgeClass">@turno.Estado</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-gear"></i> Acciones
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li>
-                                                        <a class="dropdown-item" asp-action="Detalle" asp-route-id="@turno.TurnoId">
-                                                            <i class="bi bi-eye text-info"></i> Ver Detalle
-                                                        </a>
-                                                    </li>
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <h6 class="dropdown-header">Atención Médica</h6>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" asp-controller="HistoriasClinicas" asp-action="HistorialPaciente" asp-route-pacienteId="@turno.PacienteId">
-                                                            <i class="bi bi-journal-medical text-primary"></i> Ver Historia Clínica
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" asp-controller="HistoriasClinicas" asp-action="Crear" asp-route-pacienteId="@turno.PacienteId" asp-route-turnoId="@turno.TurnoId">
-                                                            <i class="bi bi-file-earmark-plus text-success"></i> Nueva Evolución
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" asp-controller="Prescripciones" asp-action="Crear" asp-route-pacienteId="@turno.PacienteId" asp-route-turnoId="@turno.TurnoId">
-                                                            <i class="bi bi-file-medical text-success"></i> Nueva Prescripción
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" asp-controller="Prescripciones" asp-action="PrescripcionesPaciente" asp-route-pacienteId="@turno.PacienteId">
-                                                            <i class="bi bi-file-text text-primary"></i> Ver Prescripciones
-                                                        </a>
-                                                    </li>
-                                                    @if (turno.Estado == "Pendiente" || turno.Estado == "Confirmado")
-                                                    {
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <h6 class="dropdown-header">Estado del Turno</h6>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="#" onclick="cambiarEstado(@turno.TurnoId, 'Completado')">
-                                                                <i class="bi bi-check-circle text-success"></i> Marcar como Completado
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="#" onclick="cambiarEstado(@turno.TurnoId, 'Ausente')">
-                                                                <i class="bi bi-person-x text-warning"></i> Marcar como Ausente
-                                                            </a>
-                                                        </li>
-                                                    }
-                                                    @if (turno.Estado != "Cancelado" && turno.Estado != "Completado")
-                                                    {
-                                                        <li>
-                                                            <a class="dropdown-item" asp-action="Editar" asp-route-id="@turno.TurnoId">
-                                                                <i class="bi bi-pencil text-primary"></i> Editar Turno
-                                                            </a>
-                                                        </li>
-                                                    }
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <!-- Slot ocupado -->
+                                    <div class="slot-ocupado p-3 border rounded">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <strong class="text-danger">@horario.ToString(@"hh\:mm")</strong>
+                                            <i class="bi bi-lock-fill text-danger"></i>
+                                        </div>
+                                        <hr class="my-2" />
+                                        <div>
+                                            <small class="d-block text-truncate"><strong>@turnoEnHorario.PacienteNombreCompleto</strong></small>
+                                            <small class="text-muted d-block text-truncate">@turnoEnHorario.MotivoConsulta</small>
+                                            <span class="badge @turnoEnHorario.EstadoBadgeClass mt-1">@turnoEnHorario.Estado</span>
+                                        </div>
+                                        <div class="mt-2">
+                                            <a asp-action="Detalle" asp-route-id="@turnoEnHorario.TurnoId" class="btn btn-sm btn-outline-info w-100">
+                                                <i class="bi bi-eye"></i> Ver
+                                            </a>
+                                        </div>
+                                    </div>
                                 }
-                            </tbody>
-                        </table>
+                                else
+                                {
+                                    <!-- Slot libre -->
+                                    <div class="slot-libre p-3 border rounded"
+                                         onclick="abrirModalAsignarTurno('@horario.ToString(@"hh\:mm")')"
+                                         style="cursor: pointer;">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <strong class="text-success">@horario.ToString(@"hh\:mm")</strong>
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                        </div>
+                                        <hr class="my-2" />
+                                        <div class="text-center py-2">
+                                            <i class="bi bi-plus-circle text-success" style="font-size: 2rem;"></i>
+                                            <div><small class="text-muted">Disponible</small></div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
                 <div class="card-footer text-muted">
                     <div class="row">
-                        <div class="col-md-3">
-                            <small><span class="badge bg-warning">Pendiente</span> @Model.Count(t => t.Estado == "Pendiente")</small>
+                        <div class="col-md-4">
+                            <small><i class="bi bi-check-circle-fill text-success"></i> Disponible: @horariosLibres.Count(h => !Model.Any(t => t.HoraInicio == h))</small>
                         </div>
-                        <div class="col-md-3">
-                            <small><span class="badge bg-info">Confirmado</span> @Model.Count(t => t.Estado == "Confirmado")</small>
+                        <div class="col-md-4">
+                            <small><i class="bi bi-lock-fill text-danger"></i> Ocupados: @Model.Count()</small>
                         </div>
-                        <div class="col-md-3">
-                            <small><span class="badge bg-success">Completado</span> @Model.Count(t => t.Estado == "Completado")</small>
-                        </div>
-                        <div class="col-md-3">
-                            <small><span class="badge bg-danger">Cancelado</span> @Model.Count(t => t.Estado == "Cancelado")</small>
+                        <div class="col-md-4">
+                            <small><i class="bi bi-clock"></i> Total slots: @horariosLibres.Count</small>
                         </div>
                     </div>
                 </div>
@@ -225,68 +163,217 @@
         }
         else
         {
-            <div class="alert alert-info text-center">
-                <i class="bi bi-calendar-x"></i>
-                <h5>No hay turnos programados para este día</h5>
-                <p>La agenda está libre para programar nuevos turnos.</p>
-                <a asp-action="Crear" asp-route-profesionalId="@ViewBag.ProfesionalId" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Programar Turno
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h5>No hay disponibilidades configuradas para este día</h5>
+                <p>Configure las disponibilidades de agenda para este profesional en el módulo de administración.</p>
+                <a asp-controller="Disponibilidades" asp-action="Index" asp-route-profesionalId="@ViewBag.ProfesionalId" class="btn btn-warning">
+                    <i class="bi bi-gear"></i> Configurar Disponibilidades
                 </a>
             </div>
         }
     }
 </div>
 
+<!-- Modal para asignar turno -->
+<div class="modal fade" id="modalAsignarTurno" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Asignar Turno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formAsignarTurno" asp-action="AsignarTurnoRapido" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="profesionalId" value="@ViewBag.ProfesionalId" />
+                <input type="hidden" name="fecha" value="@ViewBag.Fecha?.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="hora" id="horaSeleccionada" />
+                <input type="hidden" name="pacienteId" id="pacienteIdHidden" />
+                <input type="hidden" name="duracionMinutos" value="30" />
+
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <strong>Horario seleccionado:</strong> <span id="horaDisplay"></span>
+                    </div>
+
+                    <!-- Búsqueda de paciente por documento -->
+                    <div class="card mb-3" id="seccionBusqueda">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0"><i class="bi bi-search"></i> Buscar Paciente</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="tipoDocumentoBusqueda" class="form-label">Tipo Documento *</label>
+                                    <select id="tipoDocumentoBusqueda" class="form-select">
+                                        <option value="DNI" selected>DNI</option>
+                                        <option value="LC">LC</option>
+                                        <option value="LE">LE</option>
+                                        <option value="Pasaporte">Pasaporte</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5 mb-3">
+                                    <label for="numeroDocumentoBusqueda" class="form-label">Número Documento *</label>
+                                    <input type="text" id="numeroDocumentoBusqueda" class="form-control" placeholder="Ej: 12345678" />
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end mb-3">
+                                    <button type="button" class="btn btn-primary w-100" onclick="buscarPaciente()">
+                                        <i class="bi bi-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="resultadoBusqueda"></div>
+                        </div>
+                    </div>
+
+                    <!-- Información del paciente encontrado -->
+                    <div class="card mb-3 d-none" id="seccionPacienteEncontrado">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0"><i class="bi bi-person-check"></i> Paciente Encontrado</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="infoPaciente"></div>
+                            <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="cambiarPaciente()">
+                                <i class="bi bi-arrow-left"></i> Buscar otro paciente
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Motivo de consulta -->
+                    <div class="mb-3 d-none" id="seccionMotivoConsulta">
+                        <label for="motivoConsulta" class="form-label">Motivo de Consulta *</label>
+                        <textarea name="motivoConsulta" id="motivoConsulta" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success d-none" id="btnAsignarTurno">
+                        <i class="bi bi-check-circle"></i> Asignar Turno
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Styles {
     <style>
-        .table tbody tr:hover {
-            background-color: rgba(0, 123, 255, 0.05);
+        .slot-libre {
+            background-color: #d4edda;
+            border-color: #28a745 !important;
+            transition: all 0.3s ease;
+            min-height: 150px;
         }
-        .dropdown-menu {
-            max-height: 400px;
-            overflow-y: auto;
+        .slot-libre:hover {
+            background-color: #c3e6cb;
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            transform: translateY(-2px);
+        }
+        .slot-ocupado {
+            background-color: #f8d7da;
+            border-color: #dc3545 !important;
+            min-height: 150px;
         }
     </style>
 }
 
 @section Scripts {
     <script>
-        function cambiarEstado(turnoId, nuevoEstado) {
-            if (confirm('¿Está seguro de cambiar el estado del turno a "' + nuevoEstado + '"?')) {
-                // Crear un formulario dinámico para enviar el POST
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '@Url.Action("CambiarEstado", "Turnos")';
+        var modalAsignarTurno = new bootstrap.Modal(document.getElementById('modalAsignarTurno'));
 
-                // Agregar el token antiforgery
-                const tokenInput = document.createElement('input');
-                tokenInput.type = 'hidden';
-                tokenInput.name = '__RequestVerificationToken';
-                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-                form.appendChild(tokenInput);
+        function abrirModalAsignarTurno(hora) {
+            // Resetear el modal
+            document.getElementById('horaSeleccionada').value = hora;
+            document.getElementById('horaDisplay').textContent = hora;
+            document.getElementById('pacienteIdHidden').value = '';
+            document.getElementById('motivoConsulta').value = '';
+            document.getElementById('tipoDocumentoBusqueda').value = 'DNI';
+            document.getElementById('numeroDocumentoBusqueda').value = '';
+            document.getElementById('resultadoBusqueda').innerHTML = '';
 
-                // Agregar turnoId
-                const turnoIdInput = document.createElement('input');
-                turnoIdInput.type = 'hidden';
-                turnoIdInput.name = 'turnoId';
-                turnoIdInput.value = turnoId;
-                form.appendChild(turnoIdInput);
+            // Mostrar sección de búsqueda y ocultar otras
+            document.getElementById('seccionBusqueda').classList.remove('d-none');
+            document.getElementById('seccionPacienteEncontrado').classList.add('d-none');
+            document.getElementById('seccionMotivoConsulta').classList.add('d-none');
+            document.getElementById('btnAsignarTurno').classList.add('d-none');
 
-                // Agregar nuevoEstado
-                const estadoInput = document.createElement('input');
-                estadoInput.type = 'hidden';
-                estadoInput.name = 'nuevoEstado';
-                estadoInput.value = nuevoEstado;
-                form.appendChild(estadoInput);
-
-                // Enviar el formulario
-                document.body.appendChild(form);
-                form.submit();
-            }
-            return false;
+            modalAsignarTurno.show();
         }
-    </script>
 
-    <!-- Token antiforgery oculto para JavaScript -->
-    @Html.AntiForgeryToken()
+        function buscarPaciente() {
+            var tipoDoc = document.getElementById('tipoDocumentoBusqueda').value;
+            var numeroDoc = document.getElementById('numeroDocumentoBusqueda').value.trim();
+            var resultadoDiv = document.getElementById('resultadoBusqueda');
+
+            if (!numeroDoc) {
+                resultadoDiv.innerHTML = '<div class="alert alert-warning">Por favor, ingrese el número de documento</div>';
+                return;
+            }
+
+            resultadoDiv.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Buscando...</div>';
+
+            fetch('/Turnos/BuscarPacientePorDocumento?tipoDocumento=' + encodeURIComponent(tipoDoc) + '&numeroDocumento=' + encodeURIComponent(numeroDoc))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.encontrado) {
+                        // Paciente encontrado
+                        resultadoDiv.innerHTML = '';
+                        mostrarPacienteEncontrado(data.paciente);
+                    } else {
+                        // Paciente no encontrado
+                        resultadoDiv.innerHTML =
+                            '<div class="alert alert-warning">' +
+                            '<i class="bi bi-exclamation-triangle"></i> ' + data.mensaje +
+                            '<div class="mt-2">' +
+                            '<a href="/Pacientes/Crear" class="btn btn-sm btn-primary" target="_blank">' +
+                            '<i class="bi bi-person-plus"></i> Crear Nuevo Paciente' +
+                            '</a>' +
+                            '</div>' +
+                            '</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al buscar paciente:', error);
+                    resultadoDiv.innerHTML = '<div class="alert alert-danger">Error al buscar el paciente. Por favor, intente nuevamente.</div>';
+                });
+        }
+
+        function mostrarPacienteEncontrado(paciente) {
+            document.getElementById('pacienteIdHidden').value = paciente.pacienteId;
+
+            var infoHtml =
+                '<p class="mb-1"><strong>Nombre:</strong> ' + paciente.nombreCompleto + '</p>' +
+                '<p class="mb-1"><strong>Documento:</strong> ' + paciente.documento + '</p>' +
+                '<p class="mb-1"><strong>Teléfono:</strong> ' + (paciente.telefono || 'No especificado') + '</p>' +
+                '<p class="mb-1"><strong>Obra Social:</strong> ' + (paciente.obraSocial || 'No especificada') + '</p>' +
+                '<p class="mb-0"><strong>Plan:</strong> ' + (paciente.plan || 'No especificado') + '</p>';
+
+            document.getElementById('infoPaciente').innerHTML = infoHtml;
+
+            // Mostrar sección de paciente encontrado y motivo de consulta
+            document.getElementById('seccionBusqueda').classList.add('d-none');
+            document.getElementById('seccionPacienteEncontrado').classList.remove('d-none');
+            document.getElementById('seccionMotivoConsulta').classList.remove('d-none');
+            document.getElementById('btnAsignarTurno').classList.remove('d-none');
+        }
+
+        function cambiarPaciente() {
+            document.getElementById('seccionBusqueda').classList.remove('d-none');
+            document.getElementById('seccionPacienteEncontrado').classList.add('d-none');
+            document.getElementById('seccionMotivoConsulta').classList.add('d-none');
+            document.getElementById('btnAsignarTurno').classList.add('d-none');
+            document.getElementById('pacienteIdHidden').value = '';
+            document.getElementById('motivoConsulta').value = '';
+            document.getElementById('resultadoBusqueda').innerHTML = '';
+        }
+
+        // Permitir buscar con Enter
+        document.getElementById('numeroDocumentoBusqueda').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarPaciente();
+            }
+        });
+    </script>
 }

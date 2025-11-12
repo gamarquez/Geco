@@ -16,7 +16,7 @@ namespace Data
 
         public DisponibilidadAgendaData(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _connectionString = configuration.GetConnectionString("GecoConnection");
         }
 
         /// <summary>

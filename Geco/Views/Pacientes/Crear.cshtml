@@ -150,12 +150,10 @@
 
                         <div class="mb-3">
                             <label asp-for="Observaciones" class="form-label">Observaciones</label>
-                            <textarea asp-for="Observaciones" 
-                                      class="form-control" 
-                                      rows="3" 
-                                      placeholder="Información adicional del paciente (opcional)"
-                                      aria-required="false"></textarea>
-                            <span asp-validation-for="Observaciones" class="text-danger"></span>
+                            <textarea asp-for="Observaciones"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Información adicional del paciente (opcional)"></textarea>
                             <small class="form-text text-muted">Campo opcional</small>
                         </div>
 
@@ -178,65 +176,89 @@
     <script>
         // Dropdown en cascada: cuando cambia la obra social, cargar los planes
         document.addEventListener('DOMContentLoaded', function() {
-            // Remover validación requerida SOLO del campo observaciones
+            // IMPORTANTE: Remover completamente cualquier validación del campo Observaciones
             var observacionesField = document.querySelector('textarea[name="Observaciones"]');
             if (observacionesField) {
                 observacionesField.removeAttribute('required');
+                observacionesField.removeAttribute('data-val');
                 observacionesField.removeAttribute('data-val-required');
+                observacionesField.removeAttribute('aria-required');
+                // Eliminar las reglas de jQuery Validation si existen
+                if (typeof $.validator !== 'undefined') {
+                    $(observacionesField).rules('remove');
+                }
             }
-            
+
             var obraSocialSelect = document.getElementById('obraSocialSelect');
             var planSelect = document.getElementById('planSelect');
-            
+
+            // Si ya hay una obra social seleccionada (por ejemplo, al retornar por error de validación)
+            // cargar los planes correspondientes
+            var obraSocialIdInicial = obraSocialSelect.value;
+            if (obraSocialIdInicial) {
+                cargarPlanes(obraSocialIdInicial);
+            }
+
             if (obraSocialSelect && planSelect) {
                 obraSocialSelect.addEventListener('change', function() {
                     var obraSocialId = this.value;
-                    
-                    console.log('Obra Social seleccionada:', obraSocialId);
-                    
-                    // Limpiar el select de planes
-                    planSelect.innerHTML = '<option value="">Cargando...</option>';
-                    planSelect.disabled = true;
-                    
-                    if (!obraSocialId) {
-                        planSelect.innerHTML = '<option value="">-- Seleccionar obra social primero --</option>';
-                        planSelect.disabled = false;
-                        return;
-                    }
-                    
-                    // Hacer request AJAX para obtener los planes
-                    fetch('/Pacientes/ObtenerPlanesPorObraSocial?obraSocialId=' + obraSocialId)
-                        .then(response => {
-                            console.log('Response status:', response.status);
-                            if (!response.ok) {
-                                throw new Error('Error en la respuesta del servidor');
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Planes recibidos:', data);
-                            planSelect.innerHTML = '<option value="">-- Seleccionar plan --</option>';
-                            
-                            if (data && data.length > 0) {
-                                data.forEach(function(plan) {
-                                    var option = document.createElement('option');
-                                    option.value = plan.value;
-                                    option.text = plan.text;
-                                    planSelect.appendChild(option);
-                                });
-                            } else {
-                                planSelect.innerHTML = '<option value="">No hay planes disponibles</option>';
-                            }
-                            
-                            planSelect.disabled = false;
-                        })
-                        .catch(error => {
-                            console.error('Error al cargar planes:', error);
-                            planSelect.innerHTML = '<option value="">Error al cargar planes</option>';
-                            planSelect.disabled = false;
-                            alert('Error al cargar los planes. Por favor, intente nuevamente.');
-                        });
+                    cargarPlanes(obraSocialId);
                 });
+            }
+
+            function cargarPlanes(obraSocialId) {
+                if (!obraSocialId) {
+                    planSelect.innerHTML = '<option value="">-- Seleccionar obra social primero --</option>';
+                    planSelect.disabled = false;
+                    return;
+                }
+
+                // Guardar el valor seleccionado actualmente (si existe)
+                var planSeleccionado = planSelect.value;
+
+                // Limpiar el select de planes
+                planSelect.innerHTML = '<option value="">Cargando...</option>';
+                planSelect.disabled = true;
+
+                // Hacer request AJAX para obtener los planes
+                console.log('Cargando planes para obra social ID:', obraSocialId);
+                fetch('/Pacientes/ObtenerPlanesPorObraSocial?obraSocialId=' + obraSocialId)
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Planes recibidos:', data);
+                        planSelect.innerHTML = '<option value="">-- Seleccionar plan --</option>';
+
+                        if (data && data.length > 0) {
+                            console.log('Se encontraron', data.length, 'planes');
+                            data.forEach(function(plan) {
+                                var option = document.createElement('option');
+                                option.value = plan.value;
+                                option.text = plan.text;
+                                // Mantener la selección anterior si existe
+                                if (plan.value == planSeleccionado) {
+                                    option.selected = true;
+                                }
+                                planSelect.appendChild(option);
+                            });
+                        } else {
+                            console.log('No se encontraron planes');
+                            planSelect.innerHTML = '<option value="">No hay planes disponibles para esta obra social</option>';
+                        }
+
+                        planSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar planes:', error);
+                        planSelect.innerHTML = '<option value="">Error al cargar planes</option>';
+                        planSelect.disabled = false;
+                        alert('Error al cargar los planes: ' + error.message + '\n\nPor favor, verifique la consola del navegador para más detalles.');
+                    });
             }
         });
     </script>

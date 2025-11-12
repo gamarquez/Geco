@@ -4,6 +4,8 @@ namespace Entities
 {
     /// <summary>
     /// DTO para filtros de búsqueda de turnos
+    /// Nota: El filtro de PacienteId se mantiene por compatibilidad con el stored procedure
+    /// pero no se muestra en la interfaz del módulo de Turnos según el nuevo flujo de trabajo
     /// </summary>
     public class TurnoFiltroDto
     {

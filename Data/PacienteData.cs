@@ -71,6 +71,33 @@ namespace Data
             return paciente;
         }
 
+        public PacienteDto ObtenerPorDocumento(string tipoDocumento, string numeroDocumento)
+        {
+            PacienteDto paciente = null;
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_ObtenerPacientePorDocumento", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@TipoDocumento", tipoDocumento);
+                    cmd.Parameters.AddWithValue("@NumeroDocumento", numeroDocumento);
+
+                    conn.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            paciente = MapearPacienteDesdeReader(reader);
+                        }
+                    }
+                }
+            }
+
+            return paciente;
+        }
+
         public int Crear(CrearPacienteDto dto)
         {
             using (SqlConnection conn = new SqlConnection(_connectionString))

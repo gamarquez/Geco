@@ -23,6 +23,11 @@ namespace Contracts
         PacienteDto ObtenerPorId(int pacienteId);
 
         /// <summary>
+        /// Obtiene un paciente por tipo y número de documento
+        /// </summary>
+        PacienteDto ObtenerPorDocumento(string tipoDocumento, string numeroDocumento);
+
+        /// <summary>
         /// Crea un nuevo paciente
         /// </summary>
         (bool exitoso, string mensaje, int pacienteId) Crear(CrearPacienteDto dto);
