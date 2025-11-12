@@ -14,12 +14,18 @@ namespace Business
         private readonly TurnoData _turnoData;
         private readonly PacienteData _pacienteData;
         private readonly ProfesionalData _profesionalData;
+        private readonly DisponibilidadAgendaData _disponibilidadAgendaData;
 
-        public TurnoService(TurnoData turnoData, PacienteData pacienteData, ProfesionalData profesionalData)
+        public TurnoService(
+            TurnoData turnoData,
+            PacienteData pacienteData,
+            ProfesionalData profesionalData,
+            DisponibilidadAgendaData disponibilidadAgendaData)
         {
             _turnoData = turnoData;
             _pacienteData = pacienteData;
             _profesionalData = profesionalData;
+            _disponibilidadAgendaData = disponibilidadAgendaData;
         }
 
         public List<TurnoDto> Listar(TurnoFiltroDto filtro, out int totalRegistros)
@@ -83,7 +89,21 @@ namespace Business
                 if (!profesional.Activo)
                     return (false, "El profesional seleccionado está inactivo", 0);
 
-                // Verificar disponibilidad horaria
+                // Verificar que el horario esté dentro de las disponibilidades de agenda del profesional
+                bool existeDisponibilidad = _disponibilidadAgendaData.VerificarDisponibilidad(
+                    dto.ProfesionalId,
+                    dto.FechaTurno,
+                    dto.HoraInicio,
+                    dto.DuracionMinutos
+                );
+
+                if (!existeDisponibilidad)
+                {
+                    return (false, "El horario seleccionado está fuera del horario de atención del profesional. " +
+                                   "Consulte las disponibilidades de agenda configuradas.", 0);
+                }
+
+                // Verificar disponibilidad horaria (que no haya otro turno)
                 bool hayDisponibilidad = _turnoData.VerificarDisponibilidad(
                     dto.ProfesionalId,
                     dto.FechaTurno,

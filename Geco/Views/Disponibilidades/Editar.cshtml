@@ -1,0 +1,98 @@
+@model Entities.ActualizarDisponibilidadAgendaDto
+
+@{
+    ViewData["Title"] = "Editar Disponibilidad de Agenda";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="bi bi-pencil"></i> Editar Disponibilidad de Agenda</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Editar" method="post">
+                        <input type="hidden" asp-for="DisponibilidadAgendaId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label asp-for="ProfesionalId" class="form-label">Profesional <span class="text-danger">*</span></label>
+                                <select asp-for="ProfesionalId" asp-items="ViewBag.Profesionales" class="form-select">
+                                    <option value="">-- Seleccionar profesional --</option>
+                                </select>
+                                <span asp-validation-for="ProfesionalId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="DiaSemana" class="form-label">Día de la Semana <span class="text-danger">*</span></label>
+                                <select asp-for="DiaSemana" asp-items="ViewBag.DiasSemana" class="form-select">
+                                    <option value="">-- Seleccionar día --</option>
+                                </select>
+                                <span asp-validation-for="DiaSemana" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="IntervaloMinutos" class="form-label">Intervalo entre Turnos <span class="text-danger">*</span></label>
+                                <select asp-for="IntervaloMinutos" asp-items="ViewBag.Intervalos" class="form-select"></select>
+                                <span asp-validation-for="IntervaloMinutos" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="HoraInicio" class="form-label">Hora de Inicio <span class="text-danger">*</span></label>
+                                <input asp-for="HoraInicio" type="time" class="form-control" />
+                                <span asp-validation-for="HoraInicio" class="text-danger"></span>
+                                <small class="form-text text-muted">Horario permitido: 06:00 a 22:00</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="HoraFin" class="form-label">Hora de Fin <span class="text-danger">*</span></label>
+                                <input asp-for="HoraFin" type="time" class="form-control" />
+                                <span asp-validation-for="HoraFin" class="text-danger"></span>
+                                <small class="form-text text-muted">Horario permitido: 06:00 a 22:00</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FechaVigenciaDesde" class="form-label">Vigente Desde <span class="text-danger">*</span></label>
+                                <input asp-for="FechaVigenciaDesde" type="date" class="form-control" />
+                                <span asp-validation-for="FechaVigenciaDesde" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="FechaVigenciaHasta" class="form-label">Vigente Hasta</label>
+                                <input asp-for="FechaVigenciaHasta" type="date" class="form-control" />
+                                <span asp-validation-for="FechaVigenciaHasta" class="text-danger"></span>
+                                <small class="form-text text-muted">Dejar vacío para vigencia indefinida</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Atención:</strong> Los cambios en la disponibilidad pueden afectar turnos futuros ya programados.
+                            Verifique los turnos existentes antes de modificar los horarios.
+                        </div>
+
+                        <hr />
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-save"></i> Actualizar Disponibilidad
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

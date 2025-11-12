@@ -1,0 +1,155 @@
+@model List<Entities.DisponibilidadAgendaDto>
+
+@{
+    ViewData["Title"] = "Disponibilidades de Agenda";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="bi bi-calendar-week"></i> Disponibilidades de Agenda</h2>
+            <p class="text-muted">Gestión de horarios de atención de profesionales</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-action="Crear" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Disponibilidad
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Profesional</label>
+                    <select name="profesionalId" asp-items="ViewBag.Profesionales" class="form-select">
+                        <option value="">-- Todos --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Día de la Semana</label>
+                    <select name="diaSemana" asp-items="ViewBag.DiasSemana" class="form-select">
+                        <option value="">-- Todos --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="soloVigentes" class="form-select">
+                        <option value="">-- Todos --</option>
+                        <option value="true" selected="@(ViewBag.SoloVigentes == true)">Solo Vigentes</option>
+                        <option value="false" selected="@(ViewBag.SoloVigentes == false)">Solo No Vigentes</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Profesional</th>
+                                <th>Día</th>
+                                <th>Horario</th>
+                                <th>Intervalo</th>
+                                <th>Vigencia</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var disponibilidad in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@disponibilidad.ProfesionalNombreCompleto</strong>
+                                        <br />
+                                        <small class="text-muted">@disponibilidad.ProfesionalEspecialidad</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@disponibilidad.DiaSemanaTexto</span>
+                                    </td>
+                                    <td>
+                                        <strong>@disponibilidad.HorarioFormateado</strong>
+                                    </td>
+                                    <td>
+                                        <small>@disponibilidad.IntervaloFormateado</small>
+                                    </td>
+                                    <td>
+                                        <small>@disponibilidad.VigenciaFormateada</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge @disponibilidad.EstadoBadgeClass">@disponibilidad.EstadoTexto</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Editar" asp-route-id="@disponibilidad.DisponibilidadAgendaId"
+                                               class="btn btn-sm btn-warning" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    onclick="confirmarEliminar(@disponibilidad.DisponibilidadAgendaId)"
+                                                    title="Eliminar">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paginación -->
+        <div class="mt-3">
+            <p class="text-muted">
+                Total: <strong>@ViewBag.TotalRegistros</strong> disponibilidades
+                | Página <strong>@ViewBag.PageNumber</strong> de <strong>@ViewBag.TotalPaginas</strong>
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay disponibilidades registradas con los filtros seleccionados.
+            <a asp-action="Crear" class="alert-link">Crear la primera disponibilidad</a>
+        </div>
+    }
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<form id="formEliminar" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function confirmarEliminar(id) {
+            if (confirm('¿Está seguro de eliminar esta disponibilidad?\n\nEsto puede afectar la creación de turnos futuros.')) {
+                var form = document.getElementById('formEliminar');
+                form.action = '@Url.Action("Eliminar", "Disponibilidades")/' + id;
+                form.submit();
+            }
+        }
+    </script>
+}
