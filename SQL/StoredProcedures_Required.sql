@@ -333,6 +333,7 @@ CREATE PROCEDURE SP_VerificarDisponibilidadParaTurno
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET DATEFIRST 1; -- Establecer Lunes como primer día de la semana (1=Lunes, 7=Domingo)
 
     DECLARE @DiaSemana INT = DATEPART(WEEKDAY, @FechaTurno);
     DECLARE @HoraFin TIME = DATEADD(MINUTE, @DuracionMinutos, @HoraTurno);
@@ -373,6 +374,7 @@ CREATE PROCEDURE SP_ObtenerHorariosDisponibles
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET DATEFIRST 1; -- Establecer Lunes como primer día de la semana (1=Lunes, 7=Domingo)
 
     DECLARE @DiaSemana INT = DATEPART(WEEKDAY, @FechaTurno);
 
