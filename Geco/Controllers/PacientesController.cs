@@ -3,6 +3,7 @@ using Entities;
 using Geco.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 
 namespace Geco.Controllers
 {
@@ -12,15 +13,18 @@ namespace Geco.Controllers
         private readonly IPacienteService _pacienteService;
         private readonly IObraSocialService _obraSocialService;
         private readonly IPlanService _planService;
+        private readonly ILogger<PacientesController> _logger;
 
         public PacientesController(
             IPacienteService pacienteService,
             IObraSocialService obraSocialService,
-            IPlanService planService)
+            IPlanService planService,
+            ILogger<PacientesController> logger)
         {
             _pacienteService = pacienteService;
             _obraSocialService = obraSocialService;
             _planService = planService;
+            _logger = logger;
         }
 
         // GET: /Pacientes
@@ -205,15 +209,37 @@ namespace Geco.Controllers
         {
             try
             {
+                _logger.LogInformation($"Solicitando planes para obra social ID: {obraSocialId}");
+
+                if (obraSocialId <= 0)
+                {
+                    _logger.LogWarning($"ID de obra social inválido: {obraSocialId}");
+                    return Json(new { error = true, mensaje = "ID de obra social inválido" });
+                }
+
                 var planes = _planService.ListarPorObraSocial(obraSocialId, soloActivos: true);
+
+                _logger.LogInformation($"Se encontraron {planes.Count} planes para obra social ID: {obraSocialId}");
+
+                if (planes.Count == 0)
+                {
+                    _logger.LogWarning($"No se encontraron planes activos para obra social ID: {obraSocialId}");
+                }
+
                 var planesSelect = planes.Select(p => new { value = p.PlanId, text = p.Nombre }).ToList();
                 return Json(planesSelect);
             }
             catch (Exception ex)
             {
-                // Log del error para debugging
-                Console.WriteLine($"Error al obtener planes: {ex.Message}");
-                return Json(new List<object>());
+                _logger.LogError(ex, $"Error al obtener planes para obra social ID: {obraSocialId}. Error: {ex.Message}");
+                _logger.LogError($"Stack trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    _logger.LogError($"Inner exception: {ex.InnerException.Message}");
+                }
+
+                return Json(new { error = true, mensaje = $"Error al cargar planes: {ex.Message}" });
             }
         }
 

@@ -22,11 +22,15 @@
                             </div>
                         }
 
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Los campos marcados con <strong>*</strong> son obligatorios
+                        </div>
+
                         <h5 class="mb-3"><i class="bi bi-person"></i> Datos Personales</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Nombre" class="form-label">Nombre *</label>
-                                <input asp-for="Nombre" class="form-control" required />
+                                <input asp-for="Nombre" class="form-control" required autofocus />
                                 <span asp-validation-for="Nombre" class="text-danger"></span>
                             </div>
 
@@ -118,11 +122,18 @@
 
                         <hr class="my-4" />
                         <h5 class="mb-3"><i class="bi bi-shield-check"></i> Cobertura Médica *</h5>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Primero seleccione la <strong>Obra Social</strong>, luego el sistema cargará automáticamente los planes disponibles.
+                        </div>
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label asp-for="ObraSocialId" class="form-label">Obra Social *</label>
-                                <select asp-for="ObraSocialId" 
-                                        asp-items="ViewBag.ObrasSociales" 
+                                <label asp-for="ObraSocialId" class="form-label">
+                                    Obra Social *
+                                    <small class="text-muted">(Paso 1)</small>
+                                </label>
+                                <select asp-for="ObraSocialId"
+                                        asp-items="ViewBag.ObrasSociales"
                                         class="form-select"
                                         id="obraSocialSelect"
                                         required>
@@ -132,14 +143,20 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label asp-for="PlanId" class="form-label">Plan *</label>
-                                <select asp-for="PlanId" 
+                                <label asp-for="PlanId" class="form-label">
+                                    Plan *
+                                    <small class="text-muted">(Paso 2)</small>
+                                </label>
+                                <select asp-for="PlanId"
                                         class="form-select"
                                         id="planSelect"
                                         required>
                                     <option value="">-- Seleccionar obra social primero --</option>
                                 </select>
                                 <span asp-validation-for="PlanId" class="text-danger"></span>
+                                <small class="form-text text-muted" id="planHelpText">
+                                    Los planes se cargarán al seleccionar una obra social
+                                </small>
                             </div>
 
                             <div class="col-md-4 mb-3">
@@ -207,9 +224,15 @@
             }
 
             function cargarPlanes(obraSocialId) {
+                var planHelpText = document.getElementById('planHelpText');
+
                 if (!obraSocialId) {
                     planSelect.innerHTML = '<option value="">-- Seleccionar obra social primero --</option>';
                     planSelect.disabled = false;
+                    if (planHelpText) {
+                        planHelpText.textContent = 'Los planes se cargarán al seleccionar una obra social';
+                        planHelpText.className = 'form-text text-muted';
+                    }
                     return;
                 }
 
@@ -220,21 +243,36 @@
                 planSelect.innerHTML = '<option value="">Cargando...</option>';
                 planSelect.disabled = true;
 
+                if (planHelpText) {
+                    planHelpText.textContent = 'Cargando planes disponibles...';
+                    planHelpText.className = 'form-text text-primary';
+                }
+
                 // Hacer request AJAX para obtener los planes
                 console.log('Cargando planes para obra social ID:', obraSocialId);
                 fetch('/Pacientes/ObtenerPlanesPorObraSocial?obraSocialId=' + obraSocialId)
                     .then(response => {
                         console.log('Response status:', response.status);
                         if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor: ' + response.status);
+                            throw new Error('Error HTTP ' + response.status + ': ' + response.statusText);
                         }
                         return response.json();
                     })
                     .then(data => {
                         console.log('Planes recibidos:', data);
+
+                        // Verificar si hay un error en la respuesta
+                        if (data.error) {
+                            console.error('Error del servidor:', data.mensaje);
+                            planSelect.innerHTML = '<option value="">Error: ' + data.mensaje + '</option>';
+                            planSelect.disabled = false;
+                            alert('Error al cargar los planes:\n\n' + data.mensaje + '\n\nPor favor, verifique:\n1. Que la base de datos esté accesible\n2. Que los stored procedures estén creados\n3. Que la obra social tenga planes configurados\n\nRevise la consola del servidor para más detalles.');
+                            return;
+                        }
+
                         planSelect.innerHTML = '<option value="">-- Seleccionar plan --</option>';
 
-                        if (data && data.length > 0) {
+                        if (data && Array.isArray(data) && data.length > 0) {
                             console.log('Se encontraron', data.length, 'planes');
                             data.forEach(function(plan) {
                                 var option = document.createElement('option');
@@ -246,18 +284,34 @@
                                 }
                                 planSelect.appendChild(option);
                             });
+
+                            if (planHelpText) {
+                                planHelpText.textContent = data.length + ' plan(es) disponible(s)';
+                                planHelpText.className = 'form-text text-success';
+                            }
                         } else {
-                            console.log('No se encontraron planes');
-                            planSelect.innerHTML = '<option value="">No hay planes disponibles para esta obra social</option>';
+                            console.warn('No se encontraron planes para esta obra social');
+                            planSelect.innerHTML = '<option value="">No hay planes configurados para esta obra social</option>';
+
+                            if (planHelpText) {
+                                planHelpText.textContent = 'No hay planes configurados para esta obra social';
+                                planHelpText.className = 'form-text text-warning';
+                            }
                         }
 
                         planSelect.disabled = false;
                     })
                     .catch(error => {
                         console.error('Error al cargar planes:', error);
-                        planSelect.innerHTML = '<option value="">Error al cargar planes</option>';
+                        planSelect.innerHTML = '<option value="">Error de conexión</option>';
                         planSelect.disabled = false;
-                        alert('Error al cargar los planes: ' + error.message + '\n\nPor favor, verifique la consola del navegador para más detalles.');
+
+                        if (planHelpText) {
+                            planHelpText.textContent = 'Error al cargar planes. Ver consola para detalles.';
+                            planHelpText.className = 'form-text text-danger';
+                        }
+
+                        alert('Error al cargar los planes:\n\n' + error.message + '\n\nPosibles causas:\n1. Problema de conexión con el servidor\n2. Los stored procedures de Planes no están creados en la base de datos\n3. La obra social no tiene planes configurados\n\nPor favor, ejecute el script SQL/Instalacion_Completa.sql en su base de datos.');
                     });
             }
         });
