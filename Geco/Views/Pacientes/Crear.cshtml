@@ -207,8 +207,12 @@
                 observacionesField.removeAttribute('data-val-required');
                 observacionesField.removeAttribute('aria-required');
                 // Eliminar las reglas de jQuery Validation si existen
-                if (typeof $.validator !== 'undefined') {
-                    $(observacionesField).rules('remove');
+                if (typeof $ !== 'undefined' && $.validator) {
+                    try {
+                        $(observacionesField).rules('remove');
+                    } catch (e) {
+                        console.log('No se pudo remover validación jQuery:', e.message);
+                    }
                 }
             }
 
