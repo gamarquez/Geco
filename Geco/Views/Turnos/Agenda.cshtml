@@ -137,21 +137,66 @@
                                             <span class="badge @turno.EstadoBadgeClass">@turno.Estado</span>
                                         </td>
                                         <td class="text-center">
-                                            <div class="btn-group" role="group">
-                                                <a asp-action="Detalle" asp-route-id="@turno.TurnoId"
-                                                   class="btn btn-sm btn-info" title="Ver detalles">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                @if (turno.Estado == "Pendiente" || turno.Estado == "Confirmado")
-                                                {
-                                                    <a asp-controller="HistoriasClinicas"
-                                                       asp-action="Crear"
-                                                       asp-route-pacienteId="@turno.PacienteId"
-                                                       class="btn btn-sm btn-success"
-                                                       title="Atender">
-                                                        <i class="bi bi-clipboard2-pulse"></i>
-                                                    </a>
-                                                }
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-gear"></i> Acciones
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" asp-action="Detalle" asp-route-id="@turno.TurnoId">
+                                                            <i class="bi bi-eye text-info"></i> Ver Detalle
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <h6 class="dropdown-header">Atención Médica</h6>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" asp-controller="HistoriasClinicas" asp-action="HistorialPaciente" asp-route-pacienteId="@turno.PacienteId">
+                                                            <i class="bi bi-journal-medical text-primary"></i> Ver Historia Clínica
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" asp-controller="HistoriasClinicas" asp-action="Crear" asp-route-pacienteId="@turno.PacienteId" asp-route-turnoId="@turno.TurnoId">
+                                                            <i class="bi bi-file-earmark-plus text-success"></i> Nueva Evolución
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" asp-controller="Prescripciones" asp-action="Crear" asp-route-pacienteId="@turno.PacienteId" asp-route-turnoId="@turno.TurnoId">
+                                                            <i class="bi bi-file-medical text-success"></i> Nueva Prescripción
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" asp-controller="Prescripciones" asp-action="PrescripcionesPaciente" asp-route-pacienteId="@turno.PacienteId">
+                                                            <i class="bi bi-file-text text-primary"></i> Ver Prescripciones
+                                                        </a>
+                                                    </li>
+                                                    @if (turno.Estado == "Pendiente" || turno.Estado == "Confirmado")
+                                                    {
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <h6 class="dropdown-header">Estado del Turno</h6>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" onclick="cambiarEstado(@turno.TurnoId, 'Completado')">
+                                                                <i class="bi bi-check-circle text-success"></i> Marcar como Completado
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="#" onclick="cambiarEstado(@turno.TurnoId, 'Ausente')">
+                                                                <i class="bi bi-person-x text-warning"></i> Marcar como Ausente
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (turno.Estado != "Cancelado" && turno.Estado != "Completado")
+                                                    {
+                                                        <li>
+                                                            <a class="dropdown-item" asp-action="Editar" asp-route-id="@turno.TurnoId">
+                                                                <i class="bi bi-pencil text-primary"></i> Editar Turno
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                </ul>
                                             </div>
                                         </td>
                                     </tr>
@@ -197,5 +242,51 @@
         .table tbody tr:hover {
             background-color: rgba(0, 123, 255, 0.05);
         }
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+        }
     </style>
+}
+
+@section Scripts {
+    <script>
+        function cambiarEstado(turnoId, nuevoEstado) {
+            if (confirm('¿Está seguro de cambiar el estado del turno a "' + nuevoEstado + '"?')) {
+                // Crear un formulario dinámico para enviar el POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("CambiarEstado", "Turnos")';
+
+                // Agregar el token antiforgery
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                form.appendChild(tokenInput);
+
+                // Agregar turnoId
+                const turnoIdInput = document.createElement('input');
+                turnoIdInput.type = 'hidden';
+                turnoIdInput.name = 'turnoId';
+                turnoIdInput.value = turnoId;
+                form.appendChild(turnoIdInput);
+
+                // Agregar nuevoEstado
+                const estadoInput = document.createElement('input');
+                estadoInput.type = 'hidden';
+                estadoInput.name = 'nuevoEstado';
+                estadoInput.value = nuevoEstado;
+                form.appendChild(estadoInput);
+
+                // Enviar el formulario
+                document.body.appendChild(form);
+                form.submit();
+            }
+            return false;
+        }
+    </script>
+
+    <!-- Token antiforgery oculto para JavaScript -->
+    @Html.AntiForgeryToken()
 }

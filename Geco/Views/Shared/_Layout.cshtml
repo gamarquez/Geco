@@ -56,6 +56,23 @@
 
                         @if (ViewBag.UsuarioActual != null)
                         {
+                            <!-- MENÚ MI AGENDA (solo para profesionales) -->
+                            @if (ViewBag.EsProfesional)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Turnos" asp-action="Agenda">
+                                        <i class="bi bi-calendar-check"></i> Mi Agenda
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- MENÚ DE TURNOS -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Turnos" asp-action="Index">
+                                    <i class="bi bi-calendar3"></i> Turnos
+                                </a>
+                            </li>
+
                             <!-- MENÚ DE PACIENTES -->
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Pacientes" asp-action="Index">
@@ -63,10 +80,32 @@
                                 </a>
                             </li>
 
+                            <!-- MENÚ ATENCIÓN MÉDICA (solo para profesionales) -->
+                            @if (ViewBag.EsProfesional)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAtencion" role="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-heart-pulse"></i> Atención Médica
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="HistoriasClinicas" asp-action="Index">
+                                                <i class="bi bi-journal-medical"></i> Historias Clínicas
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Prescripciones" asp-action="Index">
+                                                <i class="bi bi-file-medical"></i> Prescripciones
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+
                             <!-- MENÚ DE ESTUDIOS (próximo módulo) -->
                             <li class="nav-item">
                                 <a class="nav-link" href="#">
-                                    <i class="bi bi-file-medical"></i> Estudios
+                                    <i class="bi bi-clipboard2-pulse"></i> Estudios
                                 </a>
                             </li>
 
