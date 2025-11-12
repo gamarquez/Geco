@@ -36,6 +36,7 @@ builder.Services.AddScoped<PacienteData>();
 builder.Services.AddScoped<HistoriaClinicaData>();
 builder.Services.AddScoped<TurnoData>();
 builder.Services.AddScoped<PrescripcionData>();
+builder.Services.AddScoped<DisponibilidadAgendaData>();
 
 // Business Layer (con sus contratos)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IPacienteService, PacienteService>();
 builder.Services.AddScoped<IHistoriaClinicaService, HistoriaClinicaService>();
 builder.Services.AddScoped<ITurnoService, TurnoService>();
 builder.Services.AddScoped<IPrescripcionService, PrescripcionService>();
+builder.Services.AddScoped<IDisponibilidadAgendaService, DisponibilidadAgendaService>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();

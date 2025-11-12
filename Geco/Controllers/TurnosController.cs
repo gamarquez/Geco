@@ -288,6 +288,7 @@ namespace Geco.Controllers
                 {
                     ViewBag.MostrarMensaje = true;
                     ViewBag.Mensaje = "Seleccione un profesional para ver su agenda";
+                    ViewBag.Fecha = fecha ?? DateTime.Today;
                     CargarProfesionalesEnViewBag(null);
                     return View(new List<TurnoDto>());
                 }
@@ -309,6 +310,9 @@ namespace Geco.Controllers
             catch (Exception ex)
             {
                 SetMensajeError($"Error al cargar la agenda: {ex.Message}");
+                ViewBag.Fecha = fecha ?? DateTime.Today;
+                ViewBag.MostrarMensaje = false;
+                CargarProfesionalesEnViewBag(profesionalId);
                 return View(new List<TurnoDto>());
             }
         }

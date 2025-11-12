@@ -6,7 +6,8 @@
       "Bash(Select-String -Pattern \"error|succeeded|failed\" -Context 0,2)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nAgregar módulo completo de Historias Clínicas\n\n- Implementar CRUD completo para historias clínicas\n- Agregar DTOs: HistoriaClinicaDto, CrearHistoriaClinicaDto, ActualizarHistoriaClinicaDto, HistoriaClinicaFiltroDto\n- Crear capa de datos con acceso a stored procedures\n- Implementar servicio de negocio con validaciones\n- Agregar controlador con filtros avanzados y paginación\n- Crear vistas Razor: Index, Crear, Editar, Detalle, HistorialPaciente\n- Implementar signos vitales: peso, altura, presión, temperatura, frecuencia cardíaca\n- Agregar cálculo automático de IMC\n- Crear stored procedures en SQL Server:\n  * SP_ListarHistoriasClinicas (con paginación)\n  * SP_ObtenerHistoriaClinicaPorId\n  * SP_ObtenerHistorialPaciente\n  * SP_CrearHistoriaClinica\n  * SP_ActualizarHistoriaClinica\n  * SP_EliminarHistoriaClinica\n- Registrar servicios en dependency injection (Program.cs)\n- Corregir namespaces duplicados en DTOs\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []
