@@ -1,0 +1,120 @@
+@model Entities.CrearTurnoDto
+
+@{
+    ViewData["Title"] = "Nuevo Turno";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-calendar-plus"></i> Nuevo Turno
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Crear" method="post">
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        }
+
+                        <h5 class="mb-3"><i class="bi bi-person-badge"></i> Información del Turno</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PacienteId" class="form-label">Paciente *</label>
+                                <select asp-for="PacienteId"
+                                        asp-items="ViewBag.Pacientes"
+                                        class="form-select"
+                                        required>
+                                    <option value="">-- Seleccionar paciente --</option>
+                                </select>
+                                <span asp-validation-for="PacienteId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfesionalId" class="form-label">Profesional *</label>
+                                <select asp-for="ProfesionalId"
+                                        asp-items="ViewBag.Profesionales"
+                                        class="form-select"
+                                        required>
+                                    <option value="">-- Seleccionar profesional --</option>
+                                </select>
+                                <span asp-validation-for="ProfesionalId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="FechaTurno" class="form-label">Fecha *</label>
+                                <input asp-for="FechaTurno" class="form-control" type="date" required />
+                                <span asp-validation-for="FechaTurno" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="HoraInicio" class="form-label">Hora *</label>
+                                <input asp-for="HoraInicio" class="form-control" type="time" required />
+                                <span asp-validation-for="HoraInicio" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="DuracionMinutos" class="form-label">Duración (min) *</label>
+                                <select asp-for="DuracionMinutos" class="form-select" required>
+                                    <option value="15">15 minutos</option>
+                                    <option value="30" selected>30 minutos</option>
+                                    <option value="45">45 minutos</option>
+                                    <option value="60">1 hora</option>
+                                    <option value="90">1 hora 30 min</option>
+                                    <option value="120">2 horas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="MotivoConsulta" class="form-label">Motivo de Consulta *</label>
+                            <textarea asp-for="MotivoConsulta"
+                                      class="form-control"
+                                      rows="2"
+                                      required
+                                      placeholder="Razón de la consulta"></textarea>
+                            <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Observaciones" class="form-label">Observaciones</label>
+                            <textarea asp-for="Observaciones"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Notas adicionales (opcional)"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Estado" class="form-label">Estado *</label>
+                            <select asp-for="Estado" class="form-select">
+                                <option value="Pendiente" selected>Pendiente</option>
+                                <option value="Confirmado">Confirmado</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Turno
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

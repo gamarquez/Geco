@@ -1,0 +1,221 @@
+@model List<Entities.TurnoDto>
+
+@{
+    ViewData["Title"] = "Turnos";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="bi bi-calendar-check"></i> Turnos</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            <a asp-action="Crear" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Turno
+            </a>
+            <a asp-action="Agenda" class="btn btn-info">
+                <i class="bi bi-calendar3"></i> Ver Agenda
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Filtros de búsqueda -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-funnel"></i> Filtros</h5>
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Paciente</label>
+                    <select name="pacienteId" asp-items="ViewBag.Pacientes" class="form-select">
+                        <option value="">-- Todos --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Profesional</label>
+                    <select name="profesionalId" asp-items="ViewBag.Profesionales" class="form-select">
+                        <option value="">-- Todos --</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Desde</label>
+                    <input type="date" name="fechaDesde" class="form-control" value="@ViewBag.FechaDesde?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Fecha Hasta</label>
+                    <input type="date" name="fechaHasta" class="form-control" value="@ViewBag.FechaHasta?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Paciente</th>
+                                <th>Profesional</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var turno in Model)
+                            {
+                                <tr class="@(turno.FechaTurno.Date == DateTime.Today ? "table-info" : "")">
+                                    <td>
+                                        <strong>@turno.FechaTurno.ToString("dd/MM/yyyy")</strong>
+                                        <br />
+                                        <small class="text-muted">@turno.HorarioFormateado</small>
+                                    </td>
+                                    <td>
+                                        <strong>@turno.PacienteNombreCompleto</strong>
+                                        <br />
+                                        <small class="text-muted">@turno.PacienteDocumento</small>
+                                    </td>
+                                    <td>
+                                        @turno.ProfesionalNombreCompleto
+                                        <br />
+                                        <small class="text-muted">Mat: @turno.ProfesionalMatricula</small>
+                                    </td>
+                                    <td>
+                                        @if (turno.MotivoConsulta.Length > 40)
+                                        {
+                                            <span>@turno.MotivoConsulta.Substring(0, 40)...</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@turno.MotivoConsulta</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge @turno.EstadoBadgeClass">@turno.Estado</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Detalle" asp-route-id="@turno.TurnoId"
+                                               class="btn btn-sm btn-info" title="Ver detalles">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (turno.Estado != "Completado" && turno.Estado != "Cancelado")
+                                            {
+                                                <a asp-action="Editar" asp-route-id="@turno.TurnoId"
+                                                   class="btn btn-sm btn-warning" title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            }
+                                            @if (turno.Estado != "Cancelado" && turno.Estado != "Completado")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                        onclick="mostrarModalCancelar(@turno.TurnoId, '@turno.PacienteNombreCompleto', '@turno.FechaTurno.ToString("dd/MM/yyyy") @turno.HorarioFormateado')"
+                                                        title="Cancelar">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                @if (ViewBag.TotalPaginas > 1)
+                {
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center mt-3">
+                            @for (int i = 1; i <= ViewBag.TotalPaginas; i++)
+                            {
+                                <li class="page-item @(i == ViewBag.PageNumber ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-pageNumber="@i"
+                                       asp-route-pacienteId="@ViewBag.PacienteId"
+                                       asp-route-profesionalId="@ViewBag.ProfesionalId"
+                                       asp-route-fechaDesde="@ViewBag.FechaDesde"
+                                       asp-route-fechaHasta="@ViewBag.FechaHasta"
+                                       asp-route-estado="@ViewBag.Estado">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+        <div class="mt-3">
+            <p class="text-muted">
+                Total: <strong>@ViewBag.TotalRegistros</strong> turnos
+                | Página <strong>@ViewBag.PageNumber</strong> de <strong>@ViewBag.TotalPaginas</strong>
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay turnos registrados.
+            <a asp-action="Crear">Crear el primero</a>
+        </div>
+    }
+</div>
+
+<!-- Modal de Cancelación -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Cancelar Turno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCancelar" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <p><strong>Paciente:</strong> <span id="cancelarPaciente"></span></p>
+                    <p><strong>Fecha y Hora:</strong> <span id="cancelarFechaHora"></span></p>
+                    <div class="mb-3">
+                        <label for="motivoCancelacion" class="form-label">Motivo de Cancelación *</label>
+                        <textarea id="motivoCancelacion" name="motivoCancelacion" class="form-control" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn btn-danger">Cancelar Turno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var modalCancelar = new bootstrap.Modal(document.getElementById('modalCancelar'));
+
+        function mostrarModalCancelar(turnoId, paciente, fechaHora) {
+            document.getElementById('cancelarPaciente').textContent = paciente;
+            document.getElementById('cancelarFechaHora').textContent = fechaHora;
+            document.getElementById('formCancelar').action = '/Turnos/Cancelar/' + turnoId;
+            document.getElementById('motivoCancelacion').value = '';
+            modalCancelar.show();
+        }
+    </script>
+}
