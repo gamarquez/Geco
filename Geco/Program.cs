@@ -5,7 +5,7 @@ using Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // ==========================================
-// CONFIGURACIÓN DE SERVICIOS
+// CONFIGURACIï¿½N DE SERVICIOS
 // ==========================================
 
 // Agregar soporte para MVC
@@ -14,7 +14,7 @@ builder.Services.AddControllersWithViews();
 // Configurar sesiones
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tiempo de expiración
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tiempo de expiraciï¿½n
     options.Cookie.HttpOnly = true; // Seguridad
     options.Cookie.IsEssential = true; // Necesario para GDPR
     options.Cookie.Name = ".GECO.Session";
@@ -24,7 +24,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 
 // ==========================================
-// INYECCIÓN DE DEPENDENCIAS - CAPAS
+// INYECCIï¿½N DE DEPENDENCIAS - CAPAS
 // ==========================================
 
 // Data Layer
@@ -33,6 +33,7 @@ builder.Services.AddScoped<ProfesionalData>();
 builder.Services.AddScoped<ObraSocialData>();
 builder.Services.AddScoped<PlanData>();
 builder.Services.AddScoped<PacienteData>();
+builder.Services.AddScoped<HistoriaClinicaData>();
 
 // Business Layer (con sus contratos)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -40,12 +41,13 @@ builder.Services.AddScoped<IProfesionalService, ProfesionalService>();
 builder.Services.AddScoped<IObraSocialService, ObraSocialService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IPacienteService, PacienteService>();
+builder.Services.AddScoped<IHistoriaClinicaService, HistoriaClinicaService>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 // ==========================================
-// CONSTRUCCIÓN DE LA APLICACIÓN
+// CONSTRUCCIï¿½N DE LA APLICACIï¿½N
 // ==========================================
 var app = builder.Build();
 

@@ -1,0 +1,165 @@
+@model Entities.ActualizarHistoriaClinicaDto
+
+@{
+    ViewData["Title"] = "Editar Historia Clínica";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Editar Historia Clínica
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Editar" method="post">
+                        @Html.HiddenFor(m => m.HistoriaClinicaId)
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-danger">
+                                @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                            </div>
+                        }
+
+                        <!-- Información del paciente (solo lectura) -->
+                        <div class="alert alert-info">
+                            <strong><i class="bi bi-info-circle"></i> Paciente:</strong> @ViewBag.PacienteNombre
+                            | <strong>Fecha de Registro:</strong> @ViewBag.FechaAlta.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+
+                        <h5 class="mb-3"><i class="bi bi-person-badge"></i> Información de la Consulta</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ProfesionalId" class="form-label">Profesional *</label>
+                                <select asp-for="ProfesionalId"
+                                        asp-items="ViewBag.Profesionales"
+                                        class="form-select"
+                                        required>
+                                    <option value="">-- Seleccionar profesional --</option>
+                                </select>
+                                <span asp-validation-for="ProfesionalId" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FechaConsulta" class="form-label">Fecha y Hora *</label>
+                                <input asp-for="FechaConsulta" class="form-control" type="datetime-local" required />
+                                <span asp-validation-for="FechaConsulta" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        @Html.HiddenFor(m => m.PacienteId)
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-clipboard-pulse"></i> Datos Clínicos</h5>
+
+                        <div class="mb-3">
+                            <label asp-for="MotivoConsulta" class="form-label">Motivo de Consulta *</label>
+                            <textarea asp-for="MotivoConsulta"
+                                      class="form-control"
+                                      rows="2"
+                                      required
+                                      placeholder="Razón principal de la consulta"></textarea>
+                            <span asp-validation-for="MotivoConsulta" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Anamnesis" class="form-label">Anamnesis</label>
+                            <textarea asp-for="Anamnesis"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Historia del paciente y antecedentes relevantes"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ExamenFisico" class="form-label">Examen Físico</label>
+                            <textarea asp-for="ExamenFisico"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Hallazgos del examen físico"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Diagnostico" class="form-label">Diagnóstico *</label>
+                            <textarea asp-for="Diagnostico"
+                                      class="form-control"
+                                      rows="2"
+                                      required
+                                      placeholder="Diagnóstico o impresión clínica"></textarea>
+                            <span asp-validation-for="Diagnostico" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Tratamiento" class="form-label">Tratamiento</label>
+                            <textarea asp-for="Tratamiento"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Plan terapéutico, medicación, indicaciones"></textarea>
+                        </div>
+
+                        <hr class="my-4" />
+                        <h5 class="mb-3"><i class="bi bi-heart-pulse"></i> Signos Vitales</h5>
+
+                        <div class="row">
+                            <div class="col-md-2 mb-3">
+                                <label asp-for="Peso" class="form-label">Peso (kg)</label>
+                                <input asp-for="Peso" class="form-control" type="number" step="0.01" min="0" placeholder="70.5" />
+                            </div>
+
+                            <div class="col-md-2 mb-3">
+                                <label asp-for="Altura" class="form-label">Altura (m)</label>
+                                <input asp-for="Altura" class="form-control" type="number" step="0.01" min="0" placeholder="1.75" />
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="PresionArterial" class="form-label">Presión (mmHg)</label>
+                                <input asp-for="PresionArterial" class="form-control" type="number" step="0.01" min="0" placeholder="120" />
+                            </div>
+
+                            <div class="col-md-2 mb-3">
+                                <label asp-for="Temperatura" class="form-label">Temp. (°C)</label>
+                                <input asp-for="Temperatura" class="form-control" type="number" step="0.1" min="0" placeholder="36.5" />
+                            </div>
+
+                            <div class="col-md-3 mb-3">
+                                <label asp-for="FrecuenciaCardiaca" class="form-label">Frec. Card. (lpm)</label>
+                                <input asp-for="FrecuenciaCardiaca" class="form-control" type="number" step="0.01" min="0" placeholder="72" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Observaciones" class="form-label">Observaciones</label>
+                            <textarea asp-for="Observaciones"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Notas adicionales o comentarios"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Activo" class="form-check-input" type="checkbox" />
+                                <label asp-for="Activo" class="form-check-label">Historia Clínica Activa</label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a asp-action="Detalle" asp-route-id="@Model.HistoriaClinicaId" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

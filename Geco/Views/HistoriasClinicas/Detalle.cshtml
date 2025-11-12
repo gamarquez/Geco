@@ -1,0 +1,232 @@
+@model Entities.HistoriaClinicaDto
+
+@{
+    ViewData["Title"] = "Detalle Historia Clínica";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="bi bi-clipboard2-check"></i> Historia Clínica - Detalle
+                        </h4>
+                        <div>
+                            <a asp-action="Editar" asp-route-id="@Model.HistoriaClinicaId" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Mensaje"] != null)
+                    {
+                        <div class="alert alert-@TempData["TipoMensaje"] alert-dismissible fade show" role="alert">
+                            @TempData["Mensaje"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Información de la Consulta -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Información de la Consulta</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <p><strong>Fecha y Hora:</strong><br />
+                                                @Model.FechaConsulta.ToString("dd/MM/yyyy HH:mm")</p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Paciente:</strong><br />
+                                                @Model.PacienteNombreCompleto<br />
+                                                <small class="text-muted">Doc: @Model.PacienteDocumento</small>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <p><strong>Profesional:</strong><br />
+                                                @Model.ProfesionalNombreCompleto<br />
+                                                <small class="text-muted">Matrícula: @Model.ProfesionalMatricula</small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos Clínicos -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0"><i class="bi bi-clipboard-pulse"></i> Datos Clínicos</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6><strong>Motivo de Consulta:</strong></h6>
+                                        <p class="ms-3">@Model.MotivoConsulta</p>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.Anamnesis))
+                                    {
+                                        <div class="mb-3">
+                                            <h6><strong>Anamnesis:</strong></h6>
+                                            <p class="ms-3">@Model.Anamnesis</p>
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.ExamenFisico))
+                                    {
+                                        <div class="mb-3">
+                                            <h6><strong>Examen Físico:</strong></h6>
+                                            <p class="ms-3">@Model.ExamenFisico</p>
+                                        </div>
+                                    }
+
+                                    <div class="mb-3">
+                                        <h6><strong>Diagnóstico:</strong></h6>
+                                        <p class="ms-3 alert alert-warning">@Model.Diagnostico</p>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(Model.Tratamiento))
+                                    {
+                                        <div class="mb-3">
+                                            <h6><strong>Tratamiento:</strong></h6>
+                                            <p class="ms-3">@Model.Tratamiento</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Signos Vitales -->
+                    @if (Model.Peso.HasValue || Model.Altura.HasValue || Model.PresionArterial.HasValue ||
+                          Model.Temperatura.HasValue || Model.FrecuenciaCardiaca.HasValue)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card border-danger">
+                                    <div class="card-header bg-danger text-white">
+                                        <h5 class="mb-0"><i class="bi bi-heart-pulse"></i> Signos Vitales</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row text-center">
+                                            @if (Model.Peso.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>Peso</strong></p>
+                                                        <h4 class="text-primary">@Model.Peso.Value.ToString("0.##") kg</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (Model.Altura.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>Altura</strong></p>
+                                                        <h4 class="text-primary">@Model.Altura.Value.ToString("0.##") m</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (Model.Peso.HasValue && Model.Altura.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>IMC</strong></p>
+                                                        <h4 class="text-success">@Model.IMC.Value.ToString("0.##")</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (Model.PresionArterial.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>Presión</strong></p>
+                                                        <h4 class="text-primary">@Model.PresionArterial.Value.ToString("0.##") mmHg</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (Model.Temperatura.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>Temperatura</strong></p>
+                                                        <h4 class="text-primary">@Model.Temperatura.Value.ToString("0.#") °C</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                            @if (Model.FrecuenciaCardiaca.HasValue)
+                                            {
+                                                <div class="col-md-2">
+                                                    <div class="alert alert-light mb-0">
+                                                        <p class="mb-0"><strong>Frec. Card.</strong></p>
+                                                        <h4 class="text-primary">@Model.FrecuenciaCardiaca.Value.ToString("0.##") lpm</h4>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Observaciones -->
+                    @if (!string.IsNullOrWhiteSpace(Model.Observaciones))
+                    {
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Observaciones</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>@Model.Observaciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Información de Auditoría -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p class="text-muted small">
+                                <strong>Fecha de Registro:</strong> @Model.FechaAlta.ToString("dd/MM/yyyy HH:mm")
+                                | <strong>Estado:</strong>
+                                @if (Model.Activo)
+                                {
+                                    <span class="badge bg-success">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactivo</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Acciones adicionales -->
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <a asp-action="HistorialPaciente" asp-route-pacienteId="@Model.PacienteId" class="btn btn-outline-primary">
+                                <i class="bi bi-file-medical"></i> Ver Historial Completo del Paciente
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
